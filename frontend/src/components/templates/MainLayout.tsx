@@ -2,9 +2,8 @@
  * Main layout template component
  */
 
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Header } from '../organisms/Header';
-import { Sidebar } from '../organisms/Sidebar';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -12,12 +11,11 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps): JSX.Element {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-soft dark:bg-gradient-soft-dark">
       <Header />
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-6">{children}</main>
-      </div>
+      <main className="p-3 sm:p-4 lg:p-8 animate-fade-in w-full overflow-x-hidden">
+        {children}
+      </main>
     </div>
   );
 }
