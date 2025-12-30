@@ -40,7 +40,6 @@ export function AddHabitForm(): JSX.Element {
         className="w-full px-3 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors touch-manipulation flex items-center justify-center gap-2"
         aria-label="Add new habit"
       >
-        <span className="text-base">➕</span>
         <span className="hidden sm:inline">Add Habit</span>
       </button>
     );
@@ -93,7 +92,7 @@ export function AddHabitForm(): JSX.Element {
       </div>
       <div className="flex gap-3 pt-2">
         <Button type="submit" variant="primary" className="flex-1">
-          ✓ Add Habit
+          Add Habit
         </Button>
         <Button
           type="button"

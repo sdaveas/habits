@@ -64,7 +64,7 @@ export function HabitItem({ habit }: HabitItemProps): JSX.Element {
           />
           <div className="flex gap-3 pt-2">
             <Button onClick={handleSave} variant="primary" className="flex-1">
-              ✓ Save
+              Save
             </Button>
             <Button onClick={handleCancel} variant="secondary" className="flex-1">
               Cancel
@@ -96,7 +96,7 @@ export function HabitItem({ habit }: HabitItemProps): JSX.Element {
             variant={isCompletedToday ? 'secondary' : 'primary'}
             className="text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap touch-manipulation"
           >
-            {isCompletedToday ? '✓ Done' : 'Done Today'}
+            {isCompletedToday ? 'Done' : 'Done Today'}
           </Button>
           <div className="flex gap-1.5 sm:gap-2">
             <Button 
@@ -104,14 +104,14 @@ export function HabitItem({ habit }: HabitItemProps): JSX.Element {
               variant="secondary"
               className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 touch-manipulation"
             >
-              ✏️
+              Edit
             </Button>
             <Button 
               onClick={() => deleteHabit(habit.id)} 
               variant="danger"
               className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 touch-manipulation"
             >
-              🗑️
+              Delete
             </Button>
           </div>
         </div>

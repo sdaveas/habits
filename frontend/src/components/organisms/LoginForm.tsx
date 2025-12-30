@@ -34,13 +34,13 @@ export function LoginForm(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-soft">
-      <div className="w-full max-w-md glass-strong rounded-3xl shadow-strong p-8 animate-scale-in">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-white dark:bg-black">
+      <div className="w-full max-w-md border border-black dark:border-white rounded p-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+          <h2 className="text-3xl font-bold text-black dark:text-white mb-2">
             {isRegister ? 'Create Account' : 'Welcome Back'}
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">
+          <p className="text-black dark:text-white text-sm">
             {isRegister ? 'Start tracking your habits today' : 'Sign in to continue'}
           </p>
         </div>
@@ -66,7 +66,7 @@ export function LoginForm(): JSX.Element {
             />
           </div>
           {error && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl animate-slide-down">
+            <div className="p-4 border border-black dark:border-white text-black dark:text-white">
               <p className="font-semibold text-sm">{error}</p>
             </div>
           )}
@@ -79,7 +79,6 @@ export function LoginForm(): JSX.Element {
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
                   Loading...
                 </span>
               ) : (
@@ -94,7 +93,7 @@ export function LoginForm(): JSX.Element {
                 setIsRegister(!isRegister);
                 setError(null);
               }}
-              className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium transition-colors"
+              className="text-black dark:text-white text-sm font-medium underline"
             >
               {isRegister
                 ? 'Already have an account? Sign in'

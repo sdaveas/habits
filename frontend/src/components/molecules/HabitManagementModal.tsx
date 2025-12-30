@@ -160,24 +160,24 @@ export function HabitManagementModal({ onClose, buttonRef }: HabitManagementModa
   return (
     <div
       ref={dropdownRef}
-      className="fixed z-50 bg-white dark:bg-gray-800 rounded-xl shadow-strong max-h-[calc(100vh-120px)] overflow-y-auto overscroll-contain border-2 border-gray-200 dark:border-gray-700"
+      className="fixed z-50 bg-white dark:bg-black max-h-[calc(100vh-120px)] overflow-y-auto overscroll-contain border border-black dark:border-white rounded"
       style={{ maxWidth: '90vw', minWidth: '320px' }}
     >
       <div
         ref={modalContentRef}
         className="w-full"
       >
-        <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
+        <div className="p-4 sm:p-6 border-b border-black dark:border-white sticky top-0 bg-white dark:bg-black z-10">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <h2 className="text-2xl font-bold text-black dark:text-white">
               Manage Habits
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white rounded"
               aria-label="Close"
             >
-              <span className="text-xl">✕</span>
+              <span className="text-xl">×</span>
             </button>
           </div>
         </div>
@@ -188,9 +188,9 @@ export function HabitManagementModal({ onClose, buttonRef }: HabitManagementModa
             <form 
               ref={formRef}
               onSubmit={handleAddSubmit} 
-              className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl space-y-4"
+              className="p-4 border border-black dark:border-white rounded space-y-4"
             >
-              <h3 className="font-semibold text-lg">Add New Habit</h3>
+              <h3 className="font-semibold text-lg text-black dark:text-white">Add New Habit</h3>
               <Input
                 ref={nameInputRef}
                 type="text"
@@ -208,29 +208,9 @@ export function HabitManagementModal({ onClose, buttonRef }: HabitManagementModa
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Add a description..."
               />
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Color
-                </label>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="color"
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
-                    className="w-16 h-16 border-2 border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:border-primary-300 dark:hover:border-primary-500 transition-colors shadow-soft"
-                  />
-                  <div className="flex-1">
-                    <div
-                      className="h-12 rounded-xl shadow-soft border-2 border-gray-200 dark:border-gray-600"
-                      style={{ backgroundColor: color }}
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-mono">{color}</p>
-                  </div>
-                </div>
-              </div>
               <div className="flex gap-3">
                 <Button type="submit" variant="primary" className="flex-1">
-                  ✓ Add Habit
+                  Add Habit
                 </Button>
                 <Button type="button" onClick={handleCancel} variant="secondary" className="flex-1">
                   Cancel
@@ -243,22 +223,22 @@ export function HabitManagementModal({ onClose, buttonRef }: HabitManagementModa
               variant="primary"
               className="w-full"
             >
-              ➕ Add New Habit
+              Add New Habit
             </Button>
           )}
 
           {/* Habits List - Collapsible */}
           {habits.length > 0 && !isAdding && !editingId && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <div className="border-t border-black dark:border-white pt-4">
               <button
                 onClick={() => setShowHabitsList(!showHabitsList)}
-                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                className="w-full flex items-center justify-between p-3 border border-black dark:border-white rounded bg-white dark:bg-black text-black dark:text-white"
               >
-                <span className="font-semibold text-gray-700 dark:text-gray-300">
+                <span className="font-semibold">
                   {habits.length} Habit{habits.length !== 1 ? 's' : ''}
                 </span>
-                <span className={`text-gray-500 dark:text-gray-400 transition-transform ${showHabitsList ? 'rotate-180' : ''}`}>
-                  ▼
+                <span className="text-black dark:text-white">
+                  {showHabitsList ? '▼' : '▶'}
                 </span>
               </button>
               
@@ -271,9 +251,9 @@ export function HabitManagementModal({ onClose, buttonRef }: HabitManagementModa
                       key={habit.id}
                       ref={formRef}
                       onSubmit={handleEditSubmit}
-                      className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl space-y-4"
+                      className="p-4 border border-black dark:border-white rounded space-y-4"
                     >
-                      <h3 className="font-semibold text-lg">Edit Habit</h3>
+                      <h3 className="font-semibold text-lg text-black dark:text-white">Edit Habit</h3>
                       <Input
                         ref={nameInputRef}
                         type="text"
@@ -289,29 +269,9 @@ export function HabitManagementModal({ onClose, buttonRef }: HabitManagementModa
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                       />
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                          Color
-                        </label>
-                        <div className="flex items-center gap-4">
-                          <input
-                            type="color"
-                            value={color}
-                            onChange={(e) => setColor(e.target.value)}
-                            className="w-16 h-16 border-2 border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:border-primary-300 dark:hover:border-primary-500 transition-colors shadow-soft"
-                          />
-                          <div className="flex-1">
-                            <div
-                              className="h-12 rounded-xl shadow-soft border-2 border-gray-200 dark:border-gray-600"
-                              style={{ backgroundColor: color }}
-                            />
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-mono">{color}</p>
-                          </div>
-                        </div>
-                      </div>
                       <div className="flex gap-3">
                         <Button type="submit" variant="primary" className="flex-1">
-                          ✓ Save
+                          Save
                         </Button>
                         <Button type="button" onClick={handleCancel} variant="secondary" className="flex-1">
                           Cancel
@@ -324,15 +284,14 @@ export function HabitManagementModal({ onClose, buttonRef }: HabitManagementModa
                     return (
                       <div
                         key={habit.id}
-                        className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center justify-between gap-3"
-                        style={{ borderLeftColor: habit.color || '#6366f1', borderLeftWidth: '3px' }}
+                        className="p-3 border border-black dark:border-white rounded flex items-center justify-between gap-3"
                       >
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
+                          <h3 className="font-semibold text-sm text-black dark:text-white truncate">
                             {habit.name}
                           </h3>
                           {habit.description && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                            <p className="text-xs text-black dark:text-white truncate mt-0.5">
                               {habit.description}
                             </p>
                           )}
@@ -340,11 +299,11 @@ export function HabitManagementModal({ onClose, buttonRef }: HabitManagementModa
                         <div className="flex gap-1.5 flex-shrink-0">
                           <button
                             onClick={() => handleEdit(habit)}
-                            className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-600 dark:text-gray-400"
+                            className="p-1.5 border border-black dark:border-white rounded bg-white dark:bg-black text-black dark:text-white"
                             aria-label={`Edit ${habit.name}`}
                             title="Edit"
                           >
-                            ✏️
+                            Edit
                           </button>
                           <button
                             onClick={() => {
@@ -352,11 +311,11 @@ export function HabitManagementModal({ onClose, buttonRef }: HabitManagementModa
                                 deleteHabit(habit.id);
                               }
                             }}
-                            className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-red-600 dark:text-red-400"
+                            className="p-1.5 border border-black dark:border-white rounded bg-white dark:bg-black text-black dark:text-white"
                             aria-label={`Delete ${habit.name}`}
                             title="Delete"
                           >
-                            🗑️
+                            Delete
                           </button>
                         </div>
                       </div>
@@ -368,7 +327,7 @@ export function HabitManagementModal({ onClose, buttonRef }: HabitManagementModa
           )}
           
           {habits.length === 0 && !isAdding && !editingId && (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <div className="text-center py-8 text-black dark:text-white">
               No habits yet. Add your first habit to get started!
             </div>
           )}

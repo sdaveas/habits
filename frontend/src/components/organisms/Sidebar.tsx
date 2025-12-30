@@ -24,7 +24,7 @@ export function Sidebar({ onClose }: SidebarProps): JSX.Element {
               className="lg:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label="Close menu"
             >
-              <span className="text-xl">✕</span>
+              <span className="text-xl">×</span>
             </button>
           )}
         </div>

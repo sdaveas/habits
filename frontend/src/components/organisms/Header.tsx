@@ -29,49 +29,18 @@ export function Header(): JSX.Element {
     }
   };
 
-  const getSyncStatusColor = (): string => {
-    switch (syncStatus) {
-      case 'syncing':
-        return 'text-yellow-600';
-      case 'synced':
-        return 'text-green-600';
-      case 'error':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
-
   const getSyncStatusDot = (): JSX.Element | null => {
-    if (syncStatus === 'syncing') {
-      return (
-        <span className="relative flex h-2 w-2 ml-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
-        </span>
-      );
-    }
-    if (syncStatus === 'synced') {
-      return (
-        <span className="ml-2 inline-flex h-2 w-2 rounded-full bg-green-500"></span>
-      );
-    }
-    if (syncStatus === 'error') {
-      return (
-        <span className="ml-2 inline-flex h-2 w-2 rounded-full bg-red-500"></span>
-      );
-    }
     return (
-      <span className="ml-2 inline-flex h-2 w-2 rounded-full bg-gray-400"></span>
+      <span className="ml-2 inline-flex h-2 w-2 bg-black dark:bg-white"></span>
     );
   };
 
   return (
-    <header className="glass-strong shadow-medium border-b border-white/50 dark:border-gray-700/50 sticky top-0 z-50">
+    <header className="bg-white dark:bg-black border-b border-black dark:border-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 sm:h-20">
           <div className="flex items-center gap-2 sm:gap-3">
-            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl font-bold text-black dark:text-white">
               Habit Tracker
             </h1>
           </div>
@@ -80,8 +49,10 @@ export function Header(): JSX.Element {
               <button
                 ref={buttonRef}
                 onClick={() => setShowHabitManagement(!showHabitManagement)}
-                className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors touch-manipulation ${
-                  showHabitManagement ? 'bg-primary-100 dark:bg-primary-900/30' : ''
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border rounded ${
+                  showHabitManagement 
+                    ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white' 
+                    : 'bg-white text-black dark:bg-black dark:text-white border-black dark:border-white'
                 }`}
                 aria-label="Manage habits"
                 aria-expanded={showHabitManagement}
@@ -96,11 +67,11 @@ export function Header(): JSX.Element {
               )}
             </div>
             {username && (
-              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hidden md:inline">
-                Welcome, <span className="font-semibold text-primary-600 dark:text-primary-400">{username}</span>
+              <span className="text-xs sm:text-sm font-medium text-black dark:text-white hidden md:inline">
+                Welcome, <span className="font-semibold">{username}</span>
               </span>
             )}
-            <div className={`text-xs sm:text-sm font-medium flex items-center ${getSyncStatusColor()}`}>
+            <div className="text-xs sm:text-sm font-medium flex items-center text-black dark:text-white">
               <span className="hidden sm:inline">{getSyncStatusText()}</span>
               {getSyncStatusDot()}
             </div>
