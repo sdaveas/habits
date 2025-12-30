@@ -1,0 +1,204 @@
+# Implementation Checklist
+
+## Phase 1: The Handshake (Security Foundation)
+
+### Frontend Tasks
+
+- [ ] Implement `deriveKey(password, salt)` using Web Crypto API
+  - Use PBKDF2-HMAC-SHA256 with 600,000 iterations
+  - Generate 32-byte (256-bit) key
+  - Return `CryptoKey` object suitable for AES-256-GCM
+
+- [ ] Generate two outputs from key derivation:
+  - $K_{enc}$ (Encryption Key) - for data encryption
+  - $H_{auth}$ (Auth String) - for server authentication
+  - Ensure keys are never persisted to storage
+
+- [ ] Implement secure password input component
+  - Clear password from memory after use
+  - No password logging or console output
+
+### Backend Tasks
+
+- [ ] Implement FastAPI endpoint to receive $H_{auth}$
+  - `POST /api/v1/auth/register` - Register new user
+  - `POST /api/v1/auth/login` - Authenticate existing user
+
+- [ ] Implement Argon2id hashing for $H_{auth}$
+  - Use recommended parameters (memory: 64MB, iterations: 3, parallelism: 4)
+  - Store hash in database with user metadata
+
+- [ ] Implement authentication verification
+  - Compare Argon2id hash on login
+  - Return authentication token (JWT or session)
+
+### Testing
+
+- [ ] Unit tests for key derivation
+  - Verify same password + same salt = same key
+  - Test with different passwords and salts
+  - Verify key length and format
+
+- [ ] Unit tests for authentication
+  - Test Argon2id hashing and verification
+  - Test authentication endpoint responses
+
+- [ ] Integration tests
+  - Test complete registration flow
+  - Test complete login flow
+  - Test authentication failure scenarios
+
+## Phase 2: Storage (The Vault)
+
+### Frontend Tasks
+
+- [ ] Implement `encrypt(plaintext, K_enc)` function
+  - Use AES-256-GCM
+  - Generate random 12-byte IV for each encryption
+  - Return `{ciphertext, iv}` as base64 strings
+
+- [ ] Implement `decrypt(ciphertext, iv, K_enc)` function
+  - Decrypt using AES-256-GCM
+  - Verify authentication tag
+  - Return plaintext string
+
+- [ ] Implement vault storage API client
+  - `POST /api/v1/vault` - Store encrypted vault
+  - `GET /api/v1/vault/{vault_id}` - Retrieve encrypted vault
+  - Handle errors appropriately
+
+- [ ] Implement vault management UI
+  - Create vault form
+  - Display vault list
+  - Edit/delete vault functionality
+
+### Backend Tasks
+
+- [ ] Implement `POST /api/v1/vault` endpoint
+  - Validate request schema (Pydantic model)
+  - Verify user authentication
+  - Store encrypted blob in database
+  - Return vault metadata
+
+- [ ] Implement `GET /api/v1/vault/{vault_id}` endpoint
+  - Verify user owns the vault
+  - Return encrypted blob
+  - Handle not found errors
+
+- [ ] Implement `PUT /api/v1/vault/{vault_id}` endpoint
+  - Update existing vault
+  - Verify ownership
+  - Validate new data
+
+- [ ] Implement `DELETE /api/v1/vault/{vault_id}` endpoint
+  - Verify ownership
+  - Soft delete or hard delete (decide strategy)
+
+- [ ] Implement database models
+  - Vault model with all required fields
+  - User model (if not already created)
+  - Relationships and indexes
+
+### Testing
+
+- [ ] Unit tests for encryption/decryption
+  - Test encryption round-trip
+  - Test with different data sizes
+  - Test error handling (invalid key, corrupted data)
+
+- [ ] API endpoint tests
+  - Test all CRUD operations
+  - Test authentication requirements
+  - Test authorization (user can only access own vaults)
+  - Test validation errors
+
+- [ ] Integration tests
+  - Test complete vault creation flow
+  - Test vault retrieval flow
+  - Test concurrent access scenarios
+
+## Phase 3: Testing & Validation
+
+### Security Testing
+
+- [ ] Verify keys never leave client
+  - Network inspection (no keys in requests)
+  - Memory inspection (keys not in localStorage/cookies)
+  - Code review for key leakage
+
+- [ ] Test authentication security
+  - Test with invalid $H_{auth}$
+  - Test with tampered authentication tokens
+  - Test rate limiting on auth endpoints
+
+- [ ] Test encryption security
+  - Verify same plaintext produces different ciphertext (due to unique IVs)
+  - Test with corrupted ciphertext (should fail gracefully)
+  - Test with wrong key (should fail gracefully)
+
+### Performance Testing
+
+- [ ] Key derivation performance
+  - Measure time for 600,000 iterations
+  - Ensure acceptable user experience (< 2 seconds)
+
+- [ ] Encryption/decryption performance
+  - Test with various data sizes
+  - Measure throughput
+
+- [ ] API performance
+  - Load testing for vault endpoints
+  - Database query optimization
+  - Response time targets (< 200ms for simple operations)
+
+### Independent Development
+
+- [ ] Frontend mock server
+  - Create `mock_crypto_server.js` for frontend development
+  - Implement all API endpoints
+  - Support offline development
+
+- [ ] Backend testing tools
+  - cURL/Postman collection for API testing
+  - Test scripts for common operations
+  - Database seeding scripts
+
+### Documentation
+
+- [ ] API documentation
+  - OpenAPI/Swagger documentation (auto-generated by FastAPI)
+  - Endpoint descriptions and examples
+  - Error response documentation
+
+- [ ] Code documentation
+  - README for setup and development
+  - Architecture decision records (ADRs)
+  - Security considerations document
+
+- [ ] User documentation
+  - User guide for vault management
+  - Security best practices for users
+
+## Phase 4: Production Readiness
+
+### Security Hardening
+
+- [ ] Security headers configuration
+- [ ] TLS 1.3 enforcement
+- [ ] Rate limiting implementation
+- [ ] Input sanitization review
+- [ ] Dependency vulnerability scanning
+
+### Monitoring & Observability
+
+- [ ] Logging implementation
+- [ ] Error tracking (Sentry, etc.)
+- [ ] Performance monitoring
+- [ ] Health check endpoints
+
+### Deployment
+
+- [ ] CI/CD pipeline setup
+- [ ] Database migration strategy
+- [ ] Backup and recovery procedures
+- [ ] Rollback procedures

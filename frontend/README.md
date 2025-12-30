@@ -1,0 +1,103 @@
+# Habit Tracker Frontend
+
+Zero-knowledge habit tracking application with GitHub-style heat map calendar visualization.
+
+## Features
+
+- **Zero-Knowledge Architecture**: All encryption happens client-side. Server never sees plaintext data or encryption keys.
+- **Habit Management**: Create, edit, and delete habits with descriptions and colors.
+- **Daily Tracking**: Mark habits as complete for any day with undo functionality.
+- **Heat Map Calendar**: GitHub-style calendar visualization showing activity over the past year.
+- **Automatic Sync**: Encrypted data automatically syncs to server after local changes.
+- **Offline Support**: Works fully offline with IndexedDB caching.
+
+## Technology Stack
+
+- **Framework**: React 18+ with TypeScript
+- **Build Tool**: Vite
+- **State Management**: Zustand
+- **Styling**: Tailwind CSS
+- **Testing**: Vitest + React Testing Library
+- **Cryptography**: Web Crypto API (PBKDF2, AES-256-GCM)
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20.19.0+ (or 22.12.0+)
+- npm or pnpm
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:5173`
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+### Testing
+
+```bash
+# Run tests
+npm test
+
+# Run tests with UI
+npm run test:ui
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### Linting
+
+```bash
+npm run lint
+```
+
+## Project Structure
+
+```
+src/
+├── api/              # Fetch wrappers for backend communication
+├── crypto/           # Pure cryptographic functions (no UI dependencies)
+├── components/       # UI components (atomic design)
+│   ├── atoms/        # Buttons, inputs, labels
+│   ├── molecules/    # Form fields, search bars
+│   ├── organisms/    # Login form, habit list, calendar
+│   └── templates/    # Page layouts
+├── store/            # Zustand state management (no keys stored)
+├── utils/            # ArrayBuffer conversions, helpers
+├── types/            # TypeScript interfaces and types
+├── hooks/            # Custom React hooks
+└── constants/        # API endpoints, config constants
+```
+
+## Security Considerations
+
+- **Keys Never Persisted**: Encryption keys exist only in memory during the session
+- **No Password Storage**: Passwords are never stored, only used for key derivation
+- **Client-Side Encryption**: All data is encrypted before transmission
+- **Secure Randomness**: All random values use `crypto.getRandomValues()`
+
+## Development Notes
+
+- All cryptographic operations are pure functions in the `/crypto` directory
+- State management never stores encryption keys or passwords
+- API layer is a thin wrapper around fetch with error handling
+- Components follow atomic design principles
+
+## License
+
+See project root for license information.
