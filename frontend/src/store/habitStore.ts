@@ -7,7 +7,7 @@
 import { create } from 'zustand';
 import type { Habit, HabitData, HabitCompletion } from '../types/HabitTypes';
 import { v4 as uuidv4 } from 'uuid';
-import { isDateCompleted, migrateCompletedDates } from '../types/HabitTypes';
+import { migrateCompletedDates } from '../types/HabitTypes';
 
 interface HabitState {
   habitData: HabitData | null;
@@ -41,7 +41,7 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       ...data,
       habits: data.habits.map((habit) => ({
         ...habit,
-        completedDates: migrateCompletedDates(habit.completedDates as any),
+        completedDates: migrateCompletedDates(habit.completedDates as HabitCompletion[] | string[]),
       })),
     };
     set({ habitData: migratedData, needsSync: false }); // Don't sync when setting data from server

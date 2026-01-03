@@ -50,13 +50,18 @@ export function useAuth(): {
             saltsToTry = saltsResponse.salts.map((s) => base64ToArrayBuffer(s));
           } else {
             // No salts found - user doesn't exist or wrong username
-            throw new Error('User not found');
+            throw new Error('User not found. Please check your username.');
           }
         } catch (err) {
-          // If getSalts fails, try with a generated salt (for backwards compatibility)
-          // This will likely fail, but gives a clear error message
-          salt = await generateSalt();
-          saltsToTry = [salt];
+          // If getSalts fails, re-throw with a more helpful error message
+          if (err instanceof Error) {
+            if (err.message.includes('User not found')) {
+              throw err;
+            }
+            // Network or server error
+            throw new Error(`Failed to retrieve user information: ${err.message}. Please check your connection and try again.`);
+          }
+          throw new Error('Failed to retrieve user information. Please check your connection and try again.');
         }
       }
 
@@ -105,13 +110,30 @@ export function useAuth(): {
           return;
         } catch (err) {
           // Save error and try next salt
-          lastError = err instanceof Error ? err : new Error('Authentication failed');
+          if (err instanceof Error) {
+            // If it's an APIError with 401, it means wrong password for this salt
+            // We'll try the next salt if available
+            if ('status' in err && (err as { status: number }).status === 401) {
+              lastError = new Error('Invalid username or password');
+            } else {
+              lastError = err;
+            }
+          } else {
+            lastError = new Error('Authentication failed');
+          }
           continue;
         }
       }
 
       // If we get here, all salts failed
-      throw lastError || new Error('Authentication failed');
+      if (lastError) {
+        // If we tried multiple salts and all failed, it's likely wrong password
+        if (saltsToTry.length > 1) {
+          throw new Error('Invalid username or password. Please check your credentials.');
+        }
+        throw lastError;
+      }
+      throw new Error('Authentication failed. Please check your username and password.');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       setError(errorMessage);
