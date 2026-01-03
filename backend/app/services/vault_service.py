@@ -97,6 +97,8 @@ async def update_vault(
     vault.ciphertext = vault_update.ciphertext
     vault.iv = vault_update.iv
     vault.version = vault_update.version
+    if vault_update.salt is not None:
+        vault.salt = vault_update.salt
     vault.updated_at = datetime.utcnow()
 
     await session.commit()

@@ -8,6 +8,8 @@ export const API_ENDPOINTS = {
   AUTH: {
     REGISTER: `${API_BASE}/auth/register`,
     LOGIN: `${API_BASE}/auth/login`,
+    CHANGE_PASSWORD: `${API_BASE}/auth/change-password`,
+    DELETE_ACCOUNT: `${API_BASE}/auth/account`,
   },
   VAULT: {
     CREATE: `${API_BASE}/vault`,

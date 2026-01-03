@@ -8,10 +8,16 @@ import { useHabitStore } from '../../store/habitStore';
 import { LogoutButton } from '../atoms/LogoutButton';
 import { ThemeToggle } from '../atoms/ThemeToggle';
 import { HabitManagementModal } from '../molecules/HabitManagementModal';
+import { ChangePasswordModal } from '../molecules/ChangePasswordModal';
+import { DeleteAccountModal } from '../molecules/DeleteAccountModal';
 
 export function Header(): JSX.Element {
   const [showHabitManagement, setShowHabitManagement] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const habitButtonRef = useRef<HTMLButtonElement>(null);
+  const passwordButtonRef = useRef<HTMLButtonElement>(null);
+  const deleteAccountButtonRef = useRef<HTMLButtonElement>(null);
   const username = useAuthStore((state) => state.username);
   const syncStatus = useHabitStore((state) => state.syncStatus);
   const syncError = useHabitStore((state) => state.syncError);
@@ -47,7 +53,7 @@ export function Header(): JSX.Element {
           <div className="flex items-center gap-2 sm:gap-4">
             <div className="relative">
               <button
-                ref={buttonRef}
+                ref={habitButtonRef}
                 onClick={() => setShowHabitManagement(!showHabitManagement)}
                 className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border rounded ${
                   showHabitManagement 
@@ -62,7 +68,49 @@ export function Header(): JSX.Element {
               {showHabitManagement && (
                 <HabitManagementModal 
                   onClose={() => setShowHabitManagement(false)}
-                  buttonRef={buttonRef}
+                  buttonRef={habitButtonRef}
+                />
+              )}
+            </div>
+            <div className="relative">
+              <button
+                ref={passwordButtonRef}
+                onClick={() => setShowChangePassword(!showChangePassword)}
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border rounded ${
+                  showChangePassword 
+                    ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white' 
+                    : 'bg-white text-black dark:bg-black dark:text-white border-black dark:border-white'
+                }`}
+                aria-label="Change password"
+                aria-expanded={showChangePassword}
+              >
+                Change Password
+              </button>
+              {showChangePassword && (
+                <ChangePasswordModal 
+                  onClose={() => setShowChangePassword(false)}
+                  buttonRef={passwordButtonRef}
+                />
+              )}
+            </div>
+            <div className="relative">
+              <button
+                ref={deleteAccountButtonRef}
+                onClick={() => setShowDeleteAccount(!showDeleteAccount)}
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border rounded ${
+                  showDeleteAccount 
+                    ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white' 
+                    : 'bg-white text-black dark:bg-black dark:text-white border-black dark:border-white'
+                }`}
+                aria-label="Delete account"
+                aria-expanded={showDeleteAccount}
+              >
+                Delete Account
+              </button>
+              {showDeleteAccount && (
+                <DeleteAccountModal 
+                  onClose={() => setShowDeleteAccount(false)}
+                  buttonRef={deleteAccountButtonRef}
                 />
               )}
             </div>

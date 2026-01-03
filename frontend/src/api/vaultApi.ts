@@ -32,6 +32,15 @@ export async function getVault(vaultId: string): Promise<GetVaultResponse> {
 }
 
 /**
+ * Get all vaults for the authenticated user
+ */
+export async function getAllVaults(): Promise<GetVaultResponse[]> {
+  return fetchAPI<GetVaultResponse[]>(API_ENDPOINTS.VAULT.GET_ALL, {
+    method: 'GET',
+  });
+}
+
+/**
  * Update existing vault
  */
 export async function updateVault(

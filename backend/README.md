@@ -108,6 +108,26 @@ With coverage:
 pipenv run pytest --cov=app --cov-report=html
 ```
 
+### Admin Interface
+
+A simple Streamlit-based admin panel is available for database management:
+
+```bash
+./run_admin.sh
+```
+
+Or manually:
+```bash
+pipenv run streamlit run admin.py
+```
+
+The admin interface provides:
+- **Dashboard**: View statistics (user count, vault count)
+- **Users**: Browse users, view details, and delete individual users
+- **Delete Records**: Bulk delete all users and vaults
+
+**Note**: The admin interface has no authentication - it should only be run locally for development purposes.
+
 ## Project Structure
 
 ```

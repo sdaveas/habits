@@ -21,6 +21,23 @@ class AuthLoginRequest(BaseModel):
     auth_hash: str = Field(..., description="PBKDF2-derived H_auth string (base64)")
 
 
+class AuthChangePasswordRequest(BaseModel):
+    """Request schema for password change."""
+
+    old_auth_hash: str = Field(..., description="PBKDF2-derived H_auth string from old password (base64)")
+    new_auth_hash: str = Field(..., description="PBKDF2-derived H_auth string from new password (base64)")
+    new_salt: str = Field(..., description="New user-unique salt (base64)")
+    vault_ciphertext: str = Field(..., description="Re-encrypted vault data (base64)")
+    vault_iv: str = Field(..., description="New IV for re-encrypted vault (base64)")
+    vault_version: int = Field(..., ge=1, description="Vault version (preserve existing)")
+
+
+class AuthDeleteAccountRequest(BaseModel):
+    """Request schema for account deletion."""
+
+    password_auth_hash: str = Field(..., description="PBKDF2-derived H_auth string from password (base64)")
+
+
 class AuthResponse(BaseModel):
     """Response schema for authentication."""
 
@@ -67,6 +84,7 @@ class VaultBlobUpdate(BaseModel):
     ciphertext: str = Field(..., description="Base64-encoded encrypted data")
     iv: str = Field(..., description="Initialization vector (base16 or base64)")
     version: int = Field(..., ge=1)
+    salt: Optional[str] = Field(None, description="User-unique salt (base64, optional for updates)")
 
 
 class ErrorResponse(BaseModel):

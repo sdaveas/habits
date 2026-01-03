@@ -8,6 +8,10 @@ import type {
   RegisterRequest,
   LoginRequest,
   AuthResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
+  DeleteAccountRequest,
+  DeleteAccountResponse,
 } from '../types/AuthTypes';
 
 /**
@@ -28,6 +32,30 @@ export async function register(
 export async function login(request: LoginRequest): Promise<AuthResponse> {
   return fetchAPI<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, {
     method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+
+/**
+ * Change user password
+ */
+export async function changePassword(
+  request: ChangePasswordRequest
+): Promise<ChangePasswordResponse> {
+  return fetchAPI<ChangePasswordResponse>(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+
+/**
+ * Delete user account
+ */
+export async function deleteAccount(
+  request: DeleteAccountRequest
+): Promise<DeleteAccountResponse> {
+  return fetchAPI<DeleteAccountResponse>(API_ENDPOINTS.AUTH.DELETE_ACCOUNT, {
+    method: 'DELETE',
     body: JSON.stringify(request),
   });
 }

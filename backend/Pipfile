@@ -15,6 +15,7 @@ pydantic-settings = "*"
 python-jose = {extras = ["cryptography"], version = "*"}
 aiosqlite = "*"
 greenlet = "*"
+streamlit = "*"
 
 [dev-packages]
 pytest = "*"
@@ -25,6 +26,7 @@ aiosqlite = "*"
 black = "*"
 ruff = "*"
 mypy = "*"
+streamlit = "*"
 
 [requires]
 python_version = "3.11"
