@@ -12,7 +12,6 @@ export default defineConfig({
   server: {
     host: '0.0.0.0', // Allow access from network devices
     port: 5173, // Explicitly set port
-    https: true, // Enable HTTPS for Web Crypto API (required for remote IP access)
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
