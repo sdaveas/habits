@@ -2,7 +2,9 @@
  * API endpoint constants
  */
 
-const API_BASE = '/api/v1';
+import { API_BASE_URL } from '../config/api';
+
+const API_BASE = `${API_BASE_URL}/api/v1`;
 
 export const API_ENDPOINTS = {
   AUTH: {
