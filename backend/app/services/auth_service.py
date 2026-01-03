@@ -94,6 +94,25 @@ async def get_user_by_id(session: AsyncSession, user_id: int) -> User | None:
     return result.scalar_one_or_none()
 
 
+async def get_salts_by_username(session: AsyncSession, username: str) -> list[str]:
+    """Get all salts for a username.
+    
+    Since usernames are not unique, this returns all salts associated with
+    the given username. Used to help clients retrieve the correct salt
+    when sessionStorage is unavailable (e.g., different origin).
+    
+    Args:
+        session: Database session
+        username: Username
+        
+    Returns:
+        List of salt strings (base64) for all users with this username
+    """
+    result = await session.execute(select(User).where(User.username == username))
+    users = result.scalars().all()
+    return [user.salt for user in users]
+
+
 async def change_user_password(
     session: AsyncSession,
     user: User,

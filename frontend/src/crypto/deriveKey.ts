@@ -6,6 +6,7 @@ import { CRYPTO_CONFIG } from '../constants/CRYPTO_CONFIG';
 import { CryptoError } from './CryptoError';
 import type { DerivedKeys, KeyDerivationParams } from '../types/CryptoTypes';
 import { stringToArrayBuffer, arrayBufferToBase64 } from '../utils/arrayBufferUtils';
+import { getSubtleCrypto } from './cryptoUtils';
 
 /**
  * Derive encryption key and authentication string from username, password, and salt
@@ -24,12 +25,14 @@ export async function deriveKey(
   const { username, password, salt } = params;
 
   try {
+    const subtle = getSubtleCrypto();
+    
     // Concatenate username + password + salt for key derivation
     const keyMaterial = `${username}${password}`;
     const keyMaterialBuffer = stringToArrayBuffer(keyMaterial);
 
     // Import the key material
-    const importedKey = await crypto.subtle.importKey(
+    const importedKey = await subtle.importKey(
       'raw',
       keyMaterialBuffer,
       'PBKDF2',
@@ -38,7 +41,7 @@ export async function deriveKey(
     );
 
     // Derive encryption key (K_enc)
-    const encryptionKey = await crypto.subtle.deriveKey(
+    const encryptionKey = await subtle.deriveKey(
       {
         name: 'PBKDF2',
         salt: salt,
@@ -55,7 +58,7 @@ export async function deriveKey(
     );
 
     // Derive authentication string (H_auth) - same process but for auth
-    const authBits = await crypto.subtle.deriveBits(
+    const authBits = await subtle.deriveBits(
       {
         name: 'PBKDF2',
         salt: salt,

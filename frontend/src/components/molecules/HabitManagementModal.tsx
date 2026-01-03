@@ -21,6 +21,7 @@ export function HabitManagementModal({ onClose, initialMode = 'manage' }: HabitM
   const addHabit = useHabitStore((state) => state.addHabit);
   const updateHabit = useHabitStore((state) => state.updateHabit);
   const deleteHabit = useHabitStore((state) => state.deleteHabit);
+  const reorderHabits = useHabitStore((state) => state.reorderHabits);
 
   const [isAdding, setIsAdding] = useState(initialMode === 'add');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -96,6 +97,20 @@ export function HabitManagementModal({ onClose, initialMode = 'manage' }: HabitM
     setIsAdding(false);
     setEditingId(null);
     setShowHabitsList(false);
+  };
+
+  const handleMoveUp = (index: number): void => {
+    if (index === 0) return; // Already at the top
+    const newOrder = [...habits];
+    [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+    reorderHabits(newOrder.map((h) => h.id));
+  };
+
+  const handleMoveDown = (index: number): void => {
+    if (index === habits.length - 1) return; // Already at the bottom
+    const newOrder = [...habits];
+    [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+    reorderHabits(newOrder.map((h) => h.id));
   };
 
   // Close modal when clicking outside
@@ -269,11 +284,33 @@ export function HabitManagementModal({ onClose, initialMode = 'manage' }: HabitM
               
               {shouldShowHabitsList && (
                 <div className="mt-3 space-y-2 max-h-64 overflow-y-auto">
-                  {habits.map((habit) => (
+                  {habits.map((habit, index) => (
                     <div
                       key={habit.id}
                       className="p-3 border border-black dark:border-white rounded flex items-center justify-between gap-3"
                     >
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex flex-col gap-0.5">
+                          <button
+                            onClick={() => handleMoveUp(index)}
+                            disabled={index === 0}
+                            className="p-1 border border-black dark:border-white rounded bg-white dark:bg-black text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                            aria-label={`Move ${habit.name} up`}
+                            title="Move up"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            onClick={() => handleMoveDown(index)}
+                            disabled={index === habits.length - 1}
+                            className="p-1 border border-black dark:border-white rounded bg-white dark:bg-black text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                            aria-label={`Move ${habit.name} down`}
+                            title="Move down"
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-sm text-black dark:text-white truncate">
                           {habit.name}

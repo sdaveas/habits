@@ -22,6 +22,7 @@ interface HabitState {
   markComplete: (habitId: string, date: string, comment?: string) => void;
   unmarkComplete: (habitId: string, date: string) => void;
   updateCompletionComment: (habitId: string, date: string, comment?: string) => void;
+  reorderHabits: (habitIds: string[]) => void;
   setSyncStatus: (status: HabitState['syncStatus'], error?: string) => void;
   setNeedsSync: (needsSync: boolean) => void;
   setImmediateSync: (immediateSync: boolean) => void;
@@ -180,6 +181,30 @@ export const useHabitStore = create<HabitState>((set, get) => ({
         lastModified: new Date().toISOString(),
       },
       immediateSync: true,
+    });
+  },
+  reorderHabits: (habitIds) => {
+    const state = get();
+    if (!state.habitData) {
+      return;
+    }
+    // Create a map of habit ID to habit for quick lookup
+    const habitMap = new Map(state.habitData.habits.map((h) => [h.id, h]));
+    // Reorder habits according to the provided order
+    const reorderedHabits = habitIds
+      .map((id) => habitMap.get(id))
+      .filter((h): h is Habit => h !== undefined);
+    // Add any habits that weren't in the reorder list (shouldn't happen, but safety check)
+    const existingIds = new Set(habitIds);
+    const remainingHabits = state.habitData.habits.filter((h) => !existingIds.has(h.id));
+    
+    set({
+      habitData: {
+        ...state.habitData,
+        habits: [...reorderedHabits, ...remainingHabits],
+        lastModified: new Date().toISOString(),
+      },
+      needsSync: true,
     });
   },
   setSyncStatus: (status, error) => {

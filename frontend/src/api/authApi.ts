@@ -60,3 +60,16 @@ export async function deleteAccount(
   });
 }
 
+/**
+ * Get salts for a username
+ * Returns all salts associated with the username (since usernames are not unique)
+ */
+export async function getSalts(username: string): Promise<{ salts: string[] }> {
+  return fetchAPI<{ salts: string[] }>(
+    `${API_ENDPOINTS.AUTH.GET_SALTS}?username=${encodeURIComponent(username)}`,
+    {
+      method: 'GET',
+    }
+  );
+}
+

@@ -44,6 +44,7 @@ class AuthResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     vault_id: Optional[str] = Field(None, description="Existing vault_id if vault exists")
+    salt: str = Field(..., description="User-unique salt (base64)")
 
 
 class VaultBlobRequest(BaseModel):

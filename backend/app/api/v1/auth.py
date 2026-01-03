@@ -2,7 +2,7 @@
 
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -22,6 +22,7 @@ from app.services.auth_service import (
     authenticate_user,
     change_user_password_with_vault,
     delete_user,
+    get_salts_by_username,
     register_user,
 )
 from app.services.vault_service import get_vault_by_user
@@ -61,6 +62,7 @@ async def register(
         access_token=access_token,
         token_type="bearer",
         vault_id=vault.vault_id if vault else None,
+        salt=user.salt,
     )
 
 
@@ -100,6 +102,7 @@ async def login(
         access_token=access_token,
         token_type="bearer",
         vault_id=vault.vault_id if vault else None,
+        salt=user.salt,
     )
 
 
@@ -162,4 +165,22 @@ async def delete_account(
         )
 
     return {"message": "Account deleted successfully"}
+
+
+@router.get("/salts")
+async def get_salts(
+    username: str = Query(..., description="Username to get salts for"),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, list[str]]:
+    """Get all salts for a username.
+    
+    Since usernames are not unique, this returns all salts associated with
+    the given username. Used to help clients retrieve the correct salt
+    when sessionStorage is unavailable (e.g., different origin).
+    
+    Note: This endpoint helps with cross-origin login but does not
+    verify authentication, so it should be rate-limited in production.
+    """
+    salts = await get_salts_by_username(session, username)
+    return {"salts": salts}
 

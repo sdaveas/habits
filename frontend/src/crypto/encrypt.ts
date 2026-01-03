@@ -6,6 +6,7 @@ import { CRYPTO_CONFIG } from '../constants/CRYPTO_CONFIG';
 import { CryptoError } from './CryptoError';
 import type { EncryptedData } from '../types/CryptoTypes';
 import { arrayBufferToBase64 } from '../utils/arrayBufferUtils';
+import { getCrypto, getSubtleCrypto } from './cryptoUtils';
 
 /**
  * Encrypt plaintext using AES-256-GCM
@@ -22,6 +23,9 @@ export async function encrypt(
   key: CryptoKey
 ): Promise<EncryptedData> {
   try {
+    const crypto = getCrypto();
+    const subtle = getSubtleCrypto();
+    
     // Generate random IV for this encryption
     const iv = new Uint8Array(CRYPTO_CONFIG.AES.IV_LENGTH);
     crypto.getRandomValues(iv);
@@ -31,7 +35,7 @@ export async function encrypt(
     const plaintextBuffer = encoder.encode(plaintext);
 
     // Encrypt using AES-GCM
-    const ciphertext = await crypto.subtle.encrypt(
+    const ciphertext = await subtle.encrypt(
       {
         name: CRYPTO_CONFIG.AES.ALGORITHM,
         iv: iv,

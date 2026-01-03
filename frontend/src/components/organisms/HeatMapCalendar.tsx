@@ -264,7 +264,7 @@ export function HeatMapCalendar(): React.JSX.Element {
         ref={calendarScrollRef}
         className="bg-white dark:bg-black border border-black dark:border-white rounded p-3 sm:p-6 overflow-x-auto -mx-2 sm:mx-0"
       >
-        <div className="inline-block min-w-full">
+        <div className="inline-block min-w-full pr-2 sm:pr-[11px]">
           {/* Individual Habit Rows */}
           <div className="space-y-4 sm:space-y-6 relative">
             {habits.map((habit) => {

@@ -39,7 +39,11 @@ npm install
 npm run dev
 ```
 
-The application will be available at `http://localhost:5173`
+The application will be available at:
+- `https://localhost:5173` (HTTPS enabled for Web Crypto API support)
+- `https://YOUR_IP:5173` (for network access)
+
+**Note**: HTTPS is required for the Web Crypto API to work when accessing via IP address. Vite will auto-generate a self-signed certificate. Your browser will show a security warning - click "Advanced" and "Proceed to localhost" (or your IP) to continue.
 
 ### Building for Production
 

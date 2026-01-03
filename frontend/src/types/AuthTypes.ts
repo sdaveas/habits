@@ -11,6 +11,7 @@ export interface AuthResponse {
   access_token: string; // JWT token (snake_case from backend)
   token_type: string; // Usually "bearer"
   vault_id?: string | null; // Optional vault ID (snake_case from backend)
+  salt: string; // Base64-encoded salt (snake_case from backend)
 }
 
 export interface RegisterRequest extends AuthRequest {

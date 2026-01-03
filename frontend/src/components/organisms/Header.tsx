@@ -2,7 +2,7 @@
  * Header organism component
  */
 
-import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { useCryptoStore } from '../../store/cryptoStore';
 import { useHabitStore } from '../../store/habitStore';
@@ -19,7 +19,6 @@ export function Header(): React.JSX.Element {
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [showImportExport, setShowImportExport] = useState(false);
-  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number; maxHeight: number } | null>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const menuDropdownRef = useRef<HTMLDivElement>(null);
   const username = useAuthStore((state) => state.username);
@@ -34,9 +33,7 @@ export function Header(): React.JSX.Element {
     const handleClickOutside = (event: MouseEvent): void => {
       if (
         menuDropdownRef.current &&
-        !menuDropdownRef.current.contains(event.target as Node) &&
-        menuButtonRef.current &&
-        !menuButtonRef.current.contains(event.target as Node)
+        !menuDropdownRef.current.contains(event.target as Node)
       ) {
         setShowMenu(false);
       }
@@ -60,57 +57,6 @@ export function Header(): React.JSX.Element {
     return () => {
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [showMenu]);
-
-  // Calculate menu position when menu is shown
-  // Using useLayoutEffect for DOM measurements to avoid visual flicker
-  useLayoutEffect(() => {
-    if (!showMenu) {
-      // Use setTimeout to defer state update and avoid synchronous setState warning
-      const timeoutId = setTimeout(() => {
-        setMenuPosition(null);
-      }, 0);
-      return () => clearTimeout(timeoutId);
-    }
-
-    if (!menuButtonRef.current) return;
-
-    // Use requestAnimationFrame to defer state update
-    const frameId = requestAnimationFrame(() => {
-      if (!menuButtonRef.current) return;
-      
-      const buttonRect = menuButtonRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const menuWidth = 200;
-      const menuHeight = 300; // Approximate height
-      
-      // Calculate right position
-      let right = viewportWidth - buttonRect.right;
-      // If menu would go off right edge, adjust
-      if (right < menuWidth) {
-        right = Math.max(8, viewportWidth - buttonRect.left);
-      }
-      
-      // Calculate top position
-      let top = buttonRect.bottom + 8;
-      // If menu would go off bottom, position above button
-      if (top + menuHeight > viewportHeight - 8) {
-        top = buttonRect.top - menuHeight - 8;
-        // If still off screen, position at top of viewport
-        if (top < 8) {
-          top = 8;
-        }
-      }
-      
-      setMenuPosition({
-        top,
-        right,
-        maxHeight: viewportHeight - top - 16,
-      });
-    });
-
-    return () => cancelAnimationFrame(frameId);
   }, [showMenu]);
 
   return (
@@ -142,79 +88,90 @@ export function Header(): React.JSX.Element {
               >
                 Menu
               </button>
-              {showMenu && menuPosition && (
+              {showMenu && (
+                <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
                   <div
                     ref={menuDropdownRef}
-                    className="fixed z-50 bg-white dark:bg-black border border-black dark:border-white rounded mt-2 min-w-[200px] max-w-[90vw] shadow-lg"
-                    style={{
-                      top: `${menuPosition.top}px`,
-                      right: `${menuPosition.right}px`,
-                      maxHeight: `${menuPosition.maxHeight}px`,
-                    }}
+                    className="bg-white dark:bg-black max-h-[calc(100vh-120px)] overflow-y-auto overscroll-contain border border-black dark:border-white rounded w-full max-w-md"
                   >
-                  <div className="p-2 space-y-1">
-                    <button
-                      onClick={() => {
-                        setShowMenu(false);
-                        setHabitManagementMode('add');
-                        setShowHabitManagement(true);
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs sm:text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                    >
-                      New Habit
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowMenu(false);
-                        setHabitManagementMode('manage');
-                        setShowHabitManagement(true);
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs sm:text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                    >
-                      Manage Habits
-                    </button>
-                    <div className="border-t border-gray-300 dark:border-gray-700 my-1"></div>
-                    <button
-                      onClick={() => {
-                        setShowMenu(false);
-                        setShowChangePassword(true);
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs sm:text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                    >
-                      Change Password
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowMenu(false);
-                        setShowImportExport(true);
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs sm:text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                    >
-                      Import/Export
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowMenu(false);
-                        setShowDeleteAccount(true);
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs sm:text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                    >
-                      Delete Account
-                    </button>
-                    <div className="border-t border-gray-300 dark:border-gray-700 my-1"></div>
-                    <button
-                      onClick={() => {
-                        setShowMenu(false);
-                        clearKeys();
-                        clearHabitData();
-                        logout();
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs sm:text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                    >
-                      Logout
-                    </button>
+                    <div className="p-4 sm:p-6 border-b border-black dark:border-white sticky top-0 bg-white dark:bg-black z-10">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-bold text-black dark:text-white">
+                          Menu
+                        </h2>
+                        <button
+                          onClick={() => setShowMenu(false)}
+                          className="p-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white rounded"
+                          aria-label="Close"
+                        >
+                          <span className="text-xl">×</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="p-4 sm:p-6 space-y-1">
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
+                          setHabitManagementMode('add');
+                          setShowHabitManagement(true);
+                        }}
+                        className="w-full text-left px-3 py-2 text-base font-bold text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                      >
+                        New Habit
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
+                          setHabitManagementMode('manage');
+                          setShowHabitManagement(true);
+                        }}
+                        className="w-full text-left px-3 py-2 text-base font-bold text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                      >
+                        Manage Habits
+                      </button>
+                      <div className="border-t border-gray-300 dark:border-gray-700 my-1"></div>
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowChangePassword(true);
+                        }}
+                        className="w-full text-left px-3 py-2 text-base font-bold text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                      >
+                        Change Password
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowImportExport(true);
+                        }}
+                        className="w-full text-left px-3 py-2 text-base font-bold text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                      >
+                        Import/Export
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowDeleteAccount(true);
+                        }}
+                        className="w-full text-left px-3 py-2 text-base font-bold text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                      >
+                        Delete Account
+                      </button>
+                      <div className="border-t border-gray-300 dark:border-gray-700 my-1"></div>
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
+                          clearKeys();
+                          clearHabitData();
+                          logout();
+                        }}
+                        className="w-full text-left px-3 py-2 text-base font-bold text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                      >
+                        Logout
+                      </button>
+                    </div>
                   </div>
-                  </div>
+                </div>
               )}
               {showHabitManagement && (
                 <HabitManagementModal 

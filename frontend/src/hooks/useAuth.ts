@@ -6,13 +6,13 @@ import { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useHabitStore } from '../store/habitStore';
 import { useCryptoStore } from '../store/cryptoStore';
-import { register, login } from '../api/authApi';
+import { register, login, getSalts } from '../api/authApi';
 import { deriveKey } from '../crypto/deriveKey';
 import { generateSalt } from '../crypto/generateSalt';
 import { syncFromServer } from '../utils/syncService';
 import { setAuthToken } from '../api/apiClient';
 import { storeSalt, getSalt } from '../utils/saltStorage';
-import { arrayBufferToBase64 } from '../utils/arrayBufferUtils';
+import { arrayBufferToBase64, base64ToArrayBuffer } from '../utils/arrayBufferUtils';
 import type { HabitData } from '../types/HabitTypes';
 
 export function useAuth(): {
@@ -34,46 +34,84 @@ export function useAuth(): {
     setError(null);
 
     try {
-      // Get or generate salt for this username
+      // Get salt from sessionStorage first (for performance)
       let salt = getSalt(username);
-      if (!salt) {
-        salt = await generateSalt();
-        storeSalt(username, salt);
-      }
-
-      // Derive keys
-      const { encryptionKey, authString } = await deriveKey({
-        username,
-        password,
-        salt,
-      });
-
-      // Authenticate with server
-      const response = await login({
-        username,
-        auth_hash: authString,
-      });
-
-      // Store auth token and user info
-      setAuthToken(response.access_token);
-      loginUser(username, response.access_token, response.vault_id || undefined);
-
-      // Store encryption key temporarily
-      setEncryptionKey(encryptionKey);
-
-      // Fetch and decrypt vault if vault ID exists
-      if (response.vault_id) {
-        const habitData = await syncFromServer(response.vault_id, encryptionKey);
-        setHabitData(habitData);
+      let saltsToTry: ArrayBuffer[] = [];
+      
+      if (salt) {
+        // If we have a salt in sessionStorage, try it first
+        saltsToTry = [salt];
       } else {
-        // Create empty habit data for new user
-        const emptyHabitData: HabitData = {
-          habits: [],
-          lastModified: new Date().toISOString(),
-          version: 1,
-        };
-        setHabitData(emptyHabitData);
+        // If no salt in sessionStorage, fetch all salts from server
+        // (needed when accessing from different origin, e.g., IP vs localhost)
+        try {
+          const saltsResponse = await getSalts(username);
+          if (saltsResponse.salts && saltsResponse.salts.length > 0) {
+            saltsToTry = saltsResponse.salts.map((s) => base64ToArrayBuffer(s));
+          } else {
+            // No salts found - user doesn't exist or wrong username
+            throw new Error('User not found');
+          }
+        } catch (err) {
+          // If getSalts fails, try with a generated salt (for backwards compatibility)
+          // This will likely fail, but gives a clear error message
+          salt = await generateSalt();
+          saltsToTry = [salt];
+        }
       }
+
+      // Try each salt until one works
+      let lastError: Error | null = null;
+      for (const saltToTry of saltsToTry) {
+        try {
+          // Derive keys with this salt
+          const { encryptionKey, authString } = await deriveKey({
+            username,
+            password,
+            salt: saltToTry,
+          });
+
+          // Authenticate with server
+          const response = await login({
+            username,
+            auth_hash: authString,
+          });
+
+          // Success! Store the salt that worked
+          storeSalt(username, saltToTry);
+
+          // Store auth token and user info
+          setAuthToken(response.access_token);
+          loginUser(username, response.access_token, response.vault_id || undefined);
+
+          // Store encryption key temporarily
+          setEncryptionKey(encryptionKey);
+
+          // Fetch and decrypt vault if vault ID exists
+          if (response.vault_id) {
+            const habitData = await syncFromServer(response.vault_id, encryptionKey);
+            setHabitData(habitData);
+          } else {
+            // Create empty habit data for new user
+            const emptyHabitData: HabitData = {
+              habits: [],
+              lastModified: new Date().toISOString(),
+              version: 1,
+            };
+            setHabitData(emptyHabitData);
+          }
+          
+          // Success - return early
+          return;
+        } catch (err) {
+          // Save error and try next salt
+          lastError = err instanceof Error ? err : new Error('Authentication failed');
+          continue;
+        }
+      }
+
+      // If we get here, all salts failed
+      throw lastError || new Error('Authentication failed');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       setError(errorMessage);

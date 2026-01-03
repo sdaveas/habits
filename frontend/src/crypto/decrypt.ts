@@ -6,6 +6,7 @@ import { CRYPTO_CONFIG } from '../constants/CRYPTO_CONFIG';
 import { CryptoError } from './CryptoError';
 import type { EncryptedData } from '../types/CryptoTypes';
 import { base64ToArrayBuffer, arrayBufferToString } from '../utils/arrayBufferUtils';
+import { getSubtleCrypto } from './cryptoUtils';
 
 /**
  * Decrypt ciphertext using AES-256-GCM
@@ -22,6 +23,7 @@ export async function decrypt(
   key: CryptoKey
 ): Promise<string> {
   try {
+    const subtle = getSubtleCrypto();
     const { ciphertext, iv } = encryptedData;
 
     // Convert base64 strings to ArrayBuffers
@@ -29,7 +31,7 @@ export async function decrypt(
     const ivBuffer = base64ToArrayBuffer(iv);
 
     // Decrypt using AES-GCM (automatically verifies authentication tag)
-    const plaintextBuffer = await crypto.subtle.decrypt(
+    const plaintextBuffer = await subtle.decrypt(
       {
         name: CRYPTO_CONFIG.AES.ALGORITHM,
         iv: ivBuffer,
