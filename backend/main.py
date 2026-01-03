@@ -3,6 +3,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.v1 import auth, vault
@@ -29,6 +30,15 @@ app = FastAPI(
     description="Backend API for zero-knowledge habit tracking. Server never sees plaintext data or encryption keys.",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+# CORS middleware - allow requests from frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for now - restrict in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Include routers
