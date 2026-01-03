@@ -21,7 +21,7 @@ import { Button } from '../atoms/Button';
 // Stable empty array reference to prevent infinite loops
 const EMPTY_HABITS: Habit[] = [];
 
-export function HeatMapCalendar(): JSX.Element {
+export function HeatMapCalendar(): React.JSX.Element {
   const habitData = useHabitStore((state) => state.habitData);
   const habits = useMemo(() => habitData?.habits || EMPTY_HABITS, [habitData]);
   const markComplete = useHabitStore((state) => state.markComplete);
@@ -34,7 +34,7 @@ export function HeatMapCalendar(): JSX.Element {
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [comment, setComment] = useState('');
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const calendarScrollRef = useRef<HTMLDivElement | null>(null);
   const habitNameRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -43,17 +43,17 @@ export function HeatMapCalendar(): JSX.Element {
 
   // Auto-scroll to the right (current day) on mount and when habits change
   useEffect(() => {
-    if (calendarScrollRef.current) {
-      // Small delay to ensure DOM is fully rendered
-      const timeoutId = setTimeout(() => {
-        if (calendarScrollRef.current) {
-          // Scroll to the right end to show the most recent dates (including today)
-          calendarScrollRef.current.scrollLeft = calendarScrollRef.current.scrollWidth;
-        }
-      }, 150);
-      
-      return () => clearTimeout(timeoutId);
-    }
+    if (!calendarScrollRef.current) return;
+    
+    // Small delay to ensure DOM is fully rendered
+    const timeoutId = setTimeout(() => {
+      if (calendarScrollRef.current) {
+        // Scroll to the right end to show the most recent dates (including today)
+        calendarScrollRef.current.scrollLeft = calendarScrollRef.current.scrollWidth;
+      }
+    }, 150);
+    
+    return () => clearTimeout(timeoutId);
   }, [habits.length, dates.length]);
 
   // Check if a habit is completed on a specific date
@@ -80,7 +80,6 @@ export function HeatMapCalendar(): JSX.Element {
     }
     
     const dateStr = format(date, 'yyyy-MM-dd');
-    const isCompleted = isHabitCompletedOnDate(habit, date);
     
     // Open comment modal for adding/editing
     setSelectedHabit(habit);

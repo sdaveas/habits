@@ -9,10 +9,9 @@ import { exportToCSV, downloadCSV, importFromCSV, readCSVFile } from '../../util
 
 interface ImportExportModalProps {
   onClose: () => void;
-  buttonRef?: React.RefObject<HTMLButtonElement>;
 }
 
-export function ImportExportModal({ onClose, buttonRef }: ImportExportModalProps): JSX.Element {
+export function ImportExportModal({ onClose }: ImportExportModalProps): React.JSX.Element {
   const habitData = useHabitStore((state) => state.habitData);
   const setHabitData = useHabitStore((state) => state.setHabitData);
   const [isImporting, setIsImporting] = useState(false);

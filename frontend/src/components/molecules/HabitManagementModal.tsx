@@ -12,11 +12,10 @@ import type { Habit } from '../../types/HabitTypes';
 
 interface HabitManagementModalProps {
   onClose: () => void;
-  buttonRef?: React.RefObject<HTMLButtonElement>;
   initialMode?: 'add' | 'manage';
 }
 
-export function HabitManagementModal({ onClose, initialMode = 'manage' }: HabitManagementModalProps): JSX.Element {
+export function HabitManagementModal({ onClose, initialMode = 'manage' }: HabitManagementModalProps): React.JSX.Element {
   const habitData = useHabitStore((state) => state.habitData);
   const habits = useMemo(() => habitData?.habits || [], [habitData]);
   const addHabit = useHabitStore((state) => state.addHabit);

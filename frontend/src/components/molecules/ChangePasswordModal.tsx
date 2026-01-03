@@ -15,7 +15,7 @@ interface ChangePasswordModalProps {
 export function ChangePasswordModal({
   onClose,
   buttonRef,
-}: ChangePasswordModalProps): JSX.Element {
+}: ChangePasswordModalProps): React.JSX.Element {
   const { changePassword, isLoading, error } = useChangePassword();
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -62,7 +62,7 @@ export function ChangePasswordModal({
         onClose();
         setSuccess(false);
       }, 2000);
-    } catch (err) {
+    } catch {
       // Error is handled by the hook
       setOldPassword('');
     }

@@ -9,13 +9,11 @@ import { Input } from '../atoms/Input';
 
 interface DeleteAccountModalProps {
   onClose: () => void;
-  buttonRef?: React.RefObject<HTMLButtonElement>;
 }
 
 export function DeleteAccountModal({
   onClose,
-  buttonRef,
-}: DeleteAccountModalProps): JSX.Element {
+}: DeleteAccountModalProps): React.JSX.Element {
   const { deleteAccount, isLoading, error } = useDeleteAccount();
   const [password, setPassword] = useState('');
   const [confirmText, setConfirmText] = useState('');
@@ -46,7 +44,7 @@ export function DeleteAccountModal({
       await deleteAccount(password);
       // Account deletion will trigger logout, so we don't need to close modal
       // The user will be redirected to login
-    } catch (err) {
+    } catch {
       // Error is handled by the hook
       setPassword('');
       setConfirmText('');

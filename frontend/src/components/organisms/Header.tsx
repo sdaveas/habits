@@ -2,7 +2,7 @@
  * Header organism component
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { useCryptoStore } from '../../store/cryptoStore';
 import { useHabitStore } from '../../store/habitStore';
@@ -12,19 +12,16 @@ import { ChangePasswordModal } from '../molecules/ChangePasswordModal';
 import { DeleteAccountModal } from '../molecules/DeleteAccountModal';
 import { ImportExportModal } from '../molecules/ImportExportModal';
 
-export function Header(): JSX.Element {
+export function Header(): React.JSX.Element {
   const [showMenu, setShowMenu] = useState(false);
   const [showHabitManagement, setShowHabitManagement] = useState(false);
   const [habitManagementMode, setHabitManagementMode] = useState<'add' | 'manage'>('manage');
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [showImportExport, setShowImportExport] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number; maxHeight: number } | null>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const menuDropdownRef = useRef<HTMLDivElement>(null);
-  const habitButtonRef = useRef<HTMLButtonElement>(null);
-  const passwordButtonRef = useRef<HTMLButtonElement>(null);
-  const deleteAccountButtonRef = useRef<HTMLButtonElement>(null);
-  const importExportButtonRef = useRef<HTMLButtonElement>(null);
   const username = useAuthStore((state) => state.username);
   const logout = useAuthStore((state) => state.logout);
   const clearKeys = useCryptoStore((state) => state.clearKeys);
@@ -32,6 +29,8 @@ export function Header(): JSX.Element {
 
   // Close menu when clicking outside
   useEffect(() => {
+    if (!showMenu) return;
+    
     const handleClickOutside = (event: MouseEvent): void => {
       if (
         menuDropdownRef.current &&
@@ -43,12 +42,10 @@ export function Header(): JSX.Element {
       }
     };
 
-    if (showMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [showMenu]);
 
   // Close menu on ESC key
@@ -63,6 +60,57 @@ export function Header(): JSX.Element {
     return () => {
       document.removeEventListener('keydown', handleEscape);
     };
+  }, [showMenu]);
+
+  // Calculate menu position when menu is shown
+  // Using useLayoutEffect for DOM measurements to avoid visual flicker
+  useLayoutEffect(() => {
+    if (!showMenu) {
+      // Use setTimeout to defer state update and avoid synchronous setState warning
+      const timeoutId = setTimeout(() => {
+        setMenuPosition(null);
+      }, 0);
+      return () => clearTimeout(timeoutId);
+    }
+
+    if (!menuButtonRef.current) return;
+
+    // Use requestAnimationFrame to defer state update
+    const frameId = requestAnimationFrame(() => {
+      if (!menuButtonRef.current) return;
+      
+      const buttonRect = menuButtonRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const menuWidth = 200;
+      const menuHeight = 300; // Approximate height
+      
+      // Calculate right position
+      let right = viewportWidth - buttonRect.right;
+      // If menu would go off right edge, adjust
+      if (right < menuWidth) {
+        right = Math.max(8, viewportWidth - buttonRect.left);
+      }
+      
+      // Calculate top position
+      let top = buttonRect.bottom + 8;
+      // If menu would go off bottom, position above button
+      if (top + menuHeight > viewportHeight - 8) {
+        top = buttonRect.top - menuHeight - 8;
+        // If still off screen, position at top of viewport
+        if (top < 8) {
+          top = 8;
+        }
+      }
+      
+      setMenuPosition({
+        top,
+        right,
+        maxHeight: viewportHeight - top - 16,
+      });
+    });
+
+    return () => cancelAnimationFrame(frameId);
   }, [showMenu]);
 
   return (
@@ -94,40 +142,14 @@ export function Header(): JSX.Element {
               >
                 Menu
               </button>
-              {showMenu && (() => {
-                if (!menuButtonRef.current) return null;
-                const buttonRect = menuButtonRef.current.getBoundingClientRect();
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-                const menuWidth = 200;
-                const menuHeight = 300; // Approximate height
-                
-                // Calculate right position
-                let right = viewportWidth - buttonRect.right;
-                // If menu would go off right edge, adjust
-                if (right < menuWidth) {
-                  right = Math.max(8, viewportWidth - buttonRect.left);
-                }
-                
-                // Calculate top position
-                let top = buttonRect.bottom + 8;
-                // If menu would go off bottom, position above button
-                if (top + menuHeight > viewportHeight - 8) {
-                  top = buttonRect.top - menuHeight - 8;
-                  // If still off screen, position at top of viewport
-                  if (top < 8) {
-                    top = 8;
-                  }
-                }
-                
-                return (
+              {showMenu && menuPosition && (
                   <div
                     ref={menuDropdownRef}
                     className="fixed z-50 bg-white dark:bg-black border border-black dark:border-white rounded mt-2 min-w-[200px] max-w-[90vw] shadow-lg"
                     style={{
-                      top: `${top}px`,
-                      right: `${right}px`,
-                      maxHeight: `${viewportHeight - top - 16}px`,
+                      top: `${menuPosition.top}px`,
+                      right: `${menuPosition.right}px`,
+                      maxHeight: `${menuPosition.maxHeight}px`,
                     }}
                   >
                   <div className="p-2 space-y-1">
@@ -193,31 +215,26 @@ export function Header(): JSX.Element {
                     </button>
                   </div>
                   </div>
-                );
-              })()}
+              )}
               {showHabitManagement && (
                 <HabitManagementModal 
                   onClose={() => setShowHabitManagement(false)}
-                  buttonRef={habitButtonRef}
                   initialMode={habitManagementMode}
                 />
               )}
               {showChangePassword && (
                 <ChangePasswordModal 
                   onClose={() => setShowChangePassword(false)}
-                  buttonRef={passwordButtonRef}
                 />
               )}
               {showImportExport && (
                 <ImportExportModal 
                   onClose={() => setShowImportExport(false)}
-                  buttonRef={importExportButtonRef}
                 />
               )}
               {showDeleteAccount && (
                 <DeleteAccountModal 
                   onClose={() => setShowDeleteAccount(false)}
-                  buttonRef={deleteAccountButtonRef}
                 />
               )}
             </div>

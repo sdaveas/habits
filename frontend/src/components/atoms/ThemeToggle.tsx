@@ -4,7 +4,7 @@
 
 import { useThemeStore } from '../../store/themeStore';
 
-export function ThemeToggle(): JSX.Element {
+export function ThemeToggle(): React.JSX.Element {
   const { theme, toggleTheme } = useThemeStore();
 
   return (
