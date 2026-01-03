@@ -5,8 +5,9 @@
  */
 
 import { create } from 'zustand';
-import type { Habit, HabitData } from '../types/HabitTypes';
+import type { Habit, HabitData, HabitCompletion } from '../types/HabitTypes';
 import { v4 as uuidv4 } from 'uuid';
+import { isDateCompleted, migrateCompletedDates } from '../types/HabitTypes';
 
 interface HabitState {
   habitData: HabitData | null;
@@ -18,8 +19,9 @@ interface HabitState {
   addHabit: (habit: Omit<Habit, 'id' | 'createdAt' | 'completedDates'>) => void;
   updateHabit: (id: string, updates: Partial<Omit<Habit, 'id'>>) => void;
   deleteHabit: (id: string) => void;
-  markComplete: (habitId: string, date: string) => void;
+  markComplete: (habitId: string, date: string, comment?: string) => void;
   unmarkComplete: (habitId: string, date: string) => void;
+  updateCompletionComment: (habitId: string, date: string, comment?: string) => void;
   setSyncStatus: (status: HabitState['syncStatus'], error?: string) => void;
   setNeedsSync: (needsSync: boolean) => void;
   setImmediateSync: (immediateSync: boolean) => void;
@@ -33,7 +35,15 @@ export const useHabitStore = create<HabitState>((set, get) => ({
   needsSync: false,
   immediateSync: false,
   setHabitData: (data: HabitData) => {
-    set({ habitData: data, needsSync: false }); // Don't sync when setting data from server
+    // Migrate any old format completedDates to new format
+    const migratedData: HabitData = {
+      ...data,
+      habits: data.habits.map((habit) => ({
+        ...habit,
+        completedDates: migrateCompletedDates(habit.completedDates as any),
+      })),
+    };
+    set({ habitData: migratedData, needsSync: false }); // Don't sync when setting data from server
   },
   addHabit: (habit) => {
     const state = get();
@@ -85,7 +95,7 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       needsSync: true, // Mark as needing sync
     });
   },
-  markComplete: (habitId, date) => {
+  markComplete: (habitId, date, comment) => {
     const state = get();
     if (!state.habitData) {
       return;
@@ -94,11 +104,27 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       habitData: {
         ...state.habitData,
         habits: state.habitData.habits.map((h) => {
-          if (h.id === habitId && !h.completedDates.includes(date)) {
-            return {
-              ...h,
-              completedDates: [...h.completedDates, date].sort(),
-            };
+          if (h.id === habitId) {
+            // Check if already completed
+            const existingIndex = h.completedDates.findIndex((c) => c.date === date);
+            if (existingIndex >= 0) {
+              // Update existing completion with comment
+              const updated = [...h.completedDates];
+              updated[existingIndex] = { date, comment: comment?.trim() || undefined };
+              return {
+                ...h,
+                completedDates: updated,
+              };
+            } else {
+              // Add new completion
+              const newCompletion: HabitCompletion = { date, comment: comment?.trim() || undefined };
+              return {
+                ...h,
+                completedDates: [...h.completedDates, newCompletion].sort((a, b) =>
+                  a.date.localeCompare(b.date)
+                ),
+              };
+            }
           }
           return h;
         }),
@@ -119,7 +145,7 @@ export const useHabitStore = create<HabitState>((set, get) => ({
           if (h.id === habitId) {
             return {
               ...h,
-              completedDates: h.completedDates.filter((d) => d !== date),
+              completedDates: h.completedDates.filter((c) => c.date !== date),
             };
           }
           return h;
@@ -127,6 +153,33 @@ export const useHabitStore = create<HabitState>((set, get) => ({
         lastModified: new Date().toISOString(),
       },
       immediateSync: true, // Trigger immediate sync for completion changes
+    });
+  },
+  updateCompletionComment: (habitId, date, comment) => {
+    const state = get();
+    if (!state.habitData) {
+      return;
+    }
+    set({
+      habitData: {
+        ...state.habitData,
+        habits: state.habitData.habits.map((h) => {
+          if (h.id === habitId) {
+            const existingIndex = h.completedDates.findIndex((c) => c.date === date);
+            if (existingIndex >= 0) {
+              const updated = [...h.completedDates];
+              updated[existingIndex] = { date, comment: comment?.trim() || undefined };
+              return {
+                ...h,
+                completedDates: updated,
+              };
+            }
+          }
+          return h;
+        }),
+        lastModified: new Date().toISOString(),
+      },
+      immediateSync: true,
     });
   },
   setSyncStatus: (status, error) => {

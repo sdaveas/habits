@@ -15,6 +15,8 @@ import {
 } from '../../utils/calendarUtils';
 import { format } from 'date-fns';
 import type { Habit } from '../../types/HabitTypes';
+import { isDateCompleted, getCompletionForDate } from '../../types/HabitTypes';
+import { Button } from '../atoms/Button';
 
 // Stable empty array reference to prevent infinite loops
 const EMPTY_HABITS: Habit[] = [];
@@ -24,9 +26,14 @@ export function HeatMapCalendar(): JSX.Element {
   const habits = useMemo(() => habitData?.habits || EMPTY_HABITS, [habitData]);
   const markComplete = useHabitStore((state) => state.markComplete);
   const unmarkComplete = useHabitStore((state) => state.unmarkComplete);
+  const updateCompletionComment = useHabitStore((state) => state.updateCompletionComment);
   const theme = useThemeStore((state) => state.theme);
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
   const [hoveredHabit, setHoveredHabit] = useState<Habit | null>(null);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [comment, setComment] = useState('');
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const calendarScrollRef = useRef<HTMLDivElement | null>(null);
   const habitNameRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -52,7 +59,7 @@ export function HeatMapCalendar(): JSX.Element {
   // Check if a habit is completed on a specific date
   const isHabitCompletedOnDate = (habit: Habit, date: Date): boolean => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return habit.completedDates.includes(dateStr);
+    return isDateCompleted(habit.completedDates, dateStr);
   };
 
   const handleCellClick = (habit: Habit, date: Date): void => {
@@ -75,11 +82,44 @@ export function HeatMapCalendar(): JSX.Element {
     const dateStr = format(date, 'yyyy-MM-dd');
     const isCompleted = isHabitCompletedOnDate(habit, date);
     
+    // Open comment modal for adding/editing
+    setSelectedHabit(habit);
+    setSelectedDate(dateStr);
+    const completion = getCompletionForDate(habit.completedDates, dateStr);
+    setComment(completion?.comment || '');
+    setShowCommentModal(true);
+  };
+
+  const handleCommentSubmit = (): void => {
+    if (!selectedHabit || !selectedDate) return;
+    
+    const isCompleted = isDateCompleted(selectedHabit.completedDates, selectedDate);
+    
     if (isCompleted) {
-      unmarkComplete(habit.id, dateStr);
+      if (comment.trim()) {
+        // Update comment
+        updateCompletionComment(selectedHabit.id, selectedDate, comment.trim());
+      } else {
+        // Remove comment (but keep completion)
+        updateCompletionComment(selectedHabit.id, selectedDate, '');
+      }
     } else {
-      markComplete(habit.id, dateStr);
+      // Mark as complete with comment
+      markComplete(selectedHabit.id, selectedDate, comment.trim() || undefined);
     }
+    setShowCommentModal(false);
+    setComment('');
+    setSelectedHabit(null);
+    setSelectedDate(null);
+  };
+
+  const handleRemoveCompletion = (): void => {
+    if (!selectedHabit || !selectedDate) return;
+    unmarkComplete(selectedHabit.id, selectedDate);
+    setShowCommentModal(false);
+    setComment('');
+    setSelectedHabit(null);
+    setSelectedDate(null);
   };
 
   const handleCellHover = (date: Date | null, habit: Habit | null): void => {
@@ -240,8 +280,8 @@ export function HeatMapCalendar(): JSX.Element {
               const yesterdayDate = new Date(todayDate);
               yesterdayDate.setDate(yesterdayDate.getDate() - 1);
               const yesterday = format(yesterdayDate, 'yyyy-MM-dd');
-              const isCompletedToday = habit.completedDates.includes(today);
-              const isCompletedYesterday = habit.completedDates.includes(yesterday);
+              const isCompletedToday = isDateCompleted(habit.completedDates, today);
+              const isCompletedYesterday = isDateCompleted(habit.completedDates, yesterday);
               
               const handleToggleToday = (): void => {
                 if (isCompletedToday) {
@@ -405,9 +445,19 @@ export function HeatMapCalendar(): JSX.Element {
             <>
               <p className="font-bold text-lg text-black dark:text-white mb-1">{hoveredHabit.name}</p>
               <p className="text-sm text-black dark:text-white font-medium mb-2">{formatDate(hoveredDate)}</p>
-              <p className="text-sm font-semibold text-black dark:text-white">
+              <p className="text-sm font-semibold text-black dark:text-white mb-2">
                 {isHabitCompletedOnDate(hoveredHabit, hoveredDate) ? 'Completed' : 'Not completed'}
               </p>
+              {isHabitCompletedOnDate(hoveredHabit, hoveredDate) && (() => {
+                const dateStr = format(hoveredDate, 'yyyy-MM-dd');
+                const completion = getCompletionForDate(hoveredHabit.completedDates, dateStr);
+                return completion?.comment ? (
+                  <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1">Note:</p>
+                    <p className="text-sm text-gray-800 dark:text-gray-200 italic">"{completion.comment}"</p>
+                  </div>
+                ) : null;
+              })()}
             </>
           ) : (
             <>
@@ -441,6 +491,72 @@ export function HeatMapCalendar(): JSX.Element {
         </div>
         <span className="font-medium text-black dark:text-white">More</span>
       </div>
+
+      {/* Comment Modal */}
+      {showCommentModal && selectedHabit && selectedDate && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-black border border-black dark:border-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold text-black dark:text-white mb-2">
+              {(() => {
+                const isCompleted = isDateCompleted(selectedHabit.completedDates, selectedDate);
+                const today = format(new Date(), 'yyyy-MM-dd');
+                const isToday = selectedDate === today;
+                if (isCompleted) {
+                  return 'Edit Note';
+                }
+                return isToday ? 'Mark as Done' : `Mark as Done for ${format(new Date(selectedDate), 'MMM d, yyyy')}`;
+              })()}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+              {selectedHabit.name} - {(() => {
+                const today = format(new Date(), 'yyyy-MM-dd');
+                return selectedDate === today ? 'Today' : format(new Date(selectedDate), 'MMMM d, yyyy');
+              })()}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-500 mb-4 italic">
+              Add a note (optional) to remember what you did or how it went
+            </p>
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Type your note here... (e.g., 'Ran 5km in the park', 'Read chapter 3', 'Felt great!')"
+              className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-black text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none mb-4"
+              rows={5}
+              autoFocus
+            />
+            <div className="flex gap-3">
+              <Button
+                onClick={handleCommentSubmit}
+                variant="primary"
+                className="flex-1"
+              >
+                {isDateCompleted(selectedHabit.completedDates, selectedDate) ? 'Save' : 'Mark Done'}
+              </Button>
+              {isDateCompleted(selectedHabit.completedDates, selectedDate) && (
+                <Button
+                  onClick={handleRemoveCompletion}
+                  variant="danger"
+                  className="flex-1"
+                >
+                  Remove
+                </Button>
+              )}
+              <Button
+                onClick={() => {
+                  setShowCommentModal(false);
+                  setComment('');
+                  setSelectedHabit(null);
+                  setSelectedDate(null);
+                }}
+                variant="secondary"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

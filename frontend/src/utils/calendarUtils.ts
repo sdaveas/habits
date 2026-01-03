@@ -4,13 +4,14 @@
 
 import { format, subDays, startOfYear, eachDayOfInterval, isSameDay } from 'date-fns';
 import type { Habit } from '../types/HabitTypes';
+import { isDateCompleted } from '../types/HabitTypes';
 
 /**
  * Calculate intensity for a specific date based on completed habits
  */
 export function calculateIntensity(habits: Habit[], date: Date): number {
   const dateStr = format(date, 'yyyy-MM-dd');
-  return habits.filter((habit) => habit.completedDates.includes(dateStr)).length;
+  return habits.filter((habit) => isDateCompleted(habit.completedDates, dateStr)).length;
 }
 
 /**
@@ -66,6 +67,6 @@ export function formatDate(date: Date): string {
  */
 export function getHabitsForDate(habits: Habit[], date: Date): Habit[] {
   const dateStr = format(date, 'yyyy-MM-dd');
-  return habits.filter((habit) => habit.completedDates.includes(dateStr));
+  return habits.filter((habit) => isDateCompleted(habit.completedDates, dateStr));
 }
 
