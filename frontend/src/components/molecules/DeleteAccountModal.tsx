@@ -53,49 +53,12 @@ export function DeleteAccountModal({
     }
   };
 
-  // Position modal below button
-  useEffect(() => {
-    if (buttonRef?.current && modalRef.current) {
-      const buttonRect = buttonRef.current.getBoundingClientRect();
-      const modal = modalRef.current;
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-
-      // Position below button
-      let top = buttonRect.bottom + 8;
-      let left = buttonRect.left;
-      let width = Math.max(buttonRect.width, 320);
-
-      // Adjust for mobile
-      if (viewportWidth < 640) {
-        width = Math.min(viewportWidth - 16, 400);
-        left = Math.max(8, Math.min(left, viewportWidth - width - 8));
-      }
-
-      // If modal would go off bottom of screen, position above button
-      const modalHeight = 400; // Approximate
-      if (top + modalHeight > viewportHeight - 16) {
-        top = buttonRect.top - modalHeight - 8;
-        if (top < 8) {
-          top = 8;
-          modal.style.maxHeight = `${viewportHeight - top - 16}px`;
-        }
-      }
-
-      modal.style.top = `${top}px`;
-      modal.style.left = `${left}px`;
-      modal.style.width = `${width}px`;
-    }
-  }, [buttonRef]);
-
   // Close modal when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent): void => {
       if (
         modalRef.current &&
-        !modalRef.current.contains(event.target as Node) &&
-        buttonRef?.current &&
-        !buttonRef.current.contains(event.target as Node)
+        !modalRef.current.contains(event.target as Node)
       ) {
         onClose();
       }
@@ -105,7 +68,21 @@ export function DeleteAccountModal({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [onClose, buttonRef]);
+  }, [onClose]);
+
+  // Close modal on ESC key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
 
   // Focus confirm input on mount
   useEffect(() => {
@@ -115,11 +92,11 @@ export function DeleteAccountModal({
   }, []);
 
   return (
-    <div
-      ref={modalRef}
-      className="fixed z-50 bg-white dark:bg-black max-h-[calc(100vh-120px)] overflow-y-auto overscroll-contain border border-black dark:border-white rounded"
-      style={{ maxWidth: '90vw', minWidth: '320px' }}
-    >
+    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+      <div
+        ref={modalRef}
+        className="bg-white dark:bg-black max-h-[calc(100vh-120px)] overflow-y-auto overscroll-contain border border-black dark:border-white rounded w-full max-w-md"
+      >
       <div className="p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-black dark:text-white">
@@ -199,6 +176,7 @@ export function DeleteAccountModal({
           </div>
         </form>
       </div>
+    </div>
     </div>
   );
 }

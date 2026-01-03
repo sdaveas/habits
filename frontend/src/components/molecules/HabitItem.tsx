@@ -2,7 +2,7 @@
  * Habit item molecule component
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useHabitStore } from '../../store/habitStore';
 import { Button } from '../atoms/Button';
 import { Input } from '../atoms/Input';
@@ -22,11 +22,25 @@ export function HabitItem({ habit }: HabitItemProps): JSX.Element {
   const [comment, setComment] = useState('');
   const [name, setName] = useState(habit.name);
   const [description, setDescription] = useState(habit.description || '');
+  const [color, setColor] = useState(habit.color || '#6366f1');
+  const [pendingDelete, setPendingDelete] = useState(false);
   const updateHabit = useHabitStore((state) => state.updateHabit);
   const deleteHabit = useHabitStore((state) => state.deleteHabit);
   const markComplete = useHabitStore((state) => state.markComplete);
   const unmarkComplete = useHabitStore((state) => state.unmarkComplete);
   const updateCompletionComment = useHabitStore((state) => state.updateCompletionComment);
+
+  // Sync state with habit prop when it changes (but not when editing)
+  useEffect(() => {
+    if (!isEditing) {
+      console.log('useEffect: Syncing state with habit prop, isEditing is false');
+      setName(habit.name);
+      setDescription(habit.description || '');
+      setColor(habit.color || '#6366f1');
+    } else {
+      console.log('useEffect: Skipping sync because isEditing is true');
+    }
+  }, [habit.id, habit.name, habit.description, habit.color, isEditing]);
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const isCompletedToday = isDateCompleted(habit.completedDates, today);
@@ -39,13 +53,20 @@ export function HabitItem({ habit }: HabitItemProps): JSX.Element {
   );
 
   const handleSave = (): void => {
-    updateHabit(habit.id, { name, description: description || undefined });
+    updateHabit(habit.id, { 
+      name, 
+      description: description || undefined,
+      color: color || undefined,
+    });
     setIsEditing(false);
+    // Scroll to top of page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCancel = (): void => {
     setName(habit.name);
     setDescription(habit.description || '');
+    setColor(habit.color || '#6366f1');
     setIsEditing(false);
   };
 
@@ -99,14 +120,17 @@ export function HabitItem({ habit }: HabitItemProps): JSX.Element {
   };
 
   if (isEditing) {
+    console.log('Rendering edit form, isEditing is true');
     return (
       <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-medium border-2 border-gray-100 dark:border-gray-700 animate-scale-in">
         <div className="space-y-4">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Edit Habit</h3>
           <Input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Habit name"
+            autoFocus
           />
           <textarea
             value={description}
@@ -127,6 +151,8 @@ export function HabitItem({ habit }: HabitItemProps): JSX.Element {
       </div>
     );
   }
+  
+  console.log('Rendering habit item, isEditing is false');
 
   return (
     <>
@@ -204,19 +230,44 @@ export function HabitItem({ habit }: HabitItemProps): JSX.Element {
               {isCompletedToday ? 'Edit Note' : '✓ Done Today'}
             </Button>
             <div className="flex gap-1.5 sm:gap-2">
-              <Button 
-                onClick={() => setIsEditing(true)} 
-                variant="secondary"
-                className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 touch-manipulation"
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Edit button clicked, current isEditing:', isEditing);
+                  setIsEditing((prev) => {
+                    console.log('Setting isEditing from', prev, 'to true');
+                    return true;
+                  });
+                }}
+                className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 border border-black dark:border-white rounded bg-white dark:bg-black text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 touch-manipulation cursor-pointer"
               >
                 Edit
-              </Button>
+              </button>
               <Button 
-                onClick={() => deleteHabit(habit.id)} 
-                variant="danger"
-                className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 touch-manipulation"
+                onClick={() => {
+                  if (pendingDelete) {
+                    // Second click - confirm deletion
+                    deleteHabit(habit.id);
+                    setPendingDelete(false);
+                    // Scroll to top of page
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  } else {
+                    // First click - mark for deletion
+                    setPendingDelete(true);
+                    // Reset after 3 seconds if no second click
+                    setTimeout(() => {
+                      setPendingDelete(false);
+                    }, 3000);
+                  }
+                }}
+                variant={pendingDelete ? 'danger' : 'secondary'}
+                className={`text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 touch-manipulation ${
+                  pendingDelete ? 'animate-pulse' : ''
+                }`}
               >
-                Delete
+                {pendingDelete ? 'Confirm?' : 'Delete'}
               </Button>
             </div>
           </div>

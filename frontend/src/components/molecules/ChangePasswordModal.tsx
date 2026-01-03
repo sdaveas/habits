@@ -122,6 +122,20 @@ export function ChangePasswordModal({
     };
   }, [onClose, buttonRef]);
 
+  // Close modal on ESC key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
+
   // Focus old password input on mount
   useEffect(() => {
     setTimeout(() => {
@@ -130,11 +144,11 @@ export function ChangePasswordModal({
   }, []);
 
   return (
-    <div
-      ref={modalRef}
-      className="fixed z-50 bg-white dark:bg-black max-h-[calc(100vh-120px)] overflow-y-auto overscroll-contain border border-black dark:border-white rounded"
-      style={{ maxWidth: '90vw', minWidth: '320px' }}
-    >
+    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+      <div
+        ref={modalRef}
+        className="bg-white dark:bg-black max-h-[calc(100vh-120px)] overflow-y-auto overscroll-contain border border-black dark:border-white rounded w-full max-w-md"
+      >
       <div className="p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-black dark:text-white">
@@ -228,6 +242,7 @@ export function ChangePasswordModal({
           </form>
         )}
       </div>
+    </div>
     </div>
   );
 }

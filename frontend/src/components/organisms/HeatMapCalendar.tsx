@@ -247,9 +247,6 @@ export function HeatMapCalendar(): JSX.Element {
   if (habits.length === 0) {
     return (
       <div className="w-full">
-        <h2 className="text-3xl font-bold mb-6 text-black dark:text-white">
-          Activity Calendar
-        </h2>
         <div className="bg-white dark:bg-black border border-black dark:border-white rounded p-6 sm:p-12 text-center">
           <p className="text-black dark:text-white font-medium text-base sm:text-lg mb-2">
             No habits yet
@@ -264,9 +261,6 @@ export function HeatMapCalendar(): JSX.Element {
 
   return (
     <div className="w-full">
-      <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-black dark:text-white">
-        Activity Calendar
-      </h2>
       <div 
         ref={calendarScrollRef}
         className="bg-white dark:bg-black border border-black dark:border-white rounded p-3 sm:p-6 overflow-x-auto -mx-2 sm:mx-0"
