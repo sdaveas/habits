@@ -2,11 +2,13 @@
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.api.v1 import auth, vault
+from app.core.config import settings
 from app.core.database import init_db
 from app.core.exceptions import (
     AuthenticationError,
@@ -32,13 +34,38 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS middleware - allow requests from frontend
+# Security: HTTPS enforcement middleware
+@app.middleware("http")
+async def force_https_middleware(request: Request, call_next):
+    """Force HTTPS in production if enabled."""
+    if settings.force_https and settings.environment == "production":
+        # Check if request is over HTTP
+        if request.url.scheme == "http":
+            # Redirect to HTTPS
+            https_url = request.url.replace(scheme="https")
+            return RedirectResponse(url=str(https_url), status_code=301)
+    
+    response = await call_next(request)
+    
+    # Add security headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    
+    # HSTS header (only over HTTPS)
+    if request.url.scheme == "https" or settings.force_https:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    
+    return response
+
+# CORS middleware - restrict to configured origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for now - restrict in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=settings.cors_allow_credentials,
+    allow_methods=settings.cors_allow_methods,
+    allow_headers=settings.cors_allow_headers,
 )
 
 # Include routers

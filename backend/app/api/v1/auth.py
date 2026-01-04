@@ -2,13 +2,14 @@
 
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_session
 from app.core.dependencies import get_current_user
 from app.core.exceptions import AuthenticationError, UserNotFoundError, VaultNotFoundError
+from app.core.rate_limit import rate_limit
 from app.core.security import create_access_token
 from app.models.database import User
 from app.models.schemas import (
@@ -32,13 +33,18 @@ router = APIRouter(prefix="/api/v1/auth", tags=["authentication"])
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 async def register(
-    request: AuthRegisterRequest, session: AsyncSession = Depends(get_session)
+    request: AuthRegisterRequest,
+    http_request: Request,
+    session: AsyncSession = Depends(get_session),
 ) -> AuthResponse:
     """Register a new user.
 
     Creates a new user account with the provided username, auth_hash, and salt.
     Returns a JWT access token for immediate authentication.
     """
+    # Rate limit: 3 registrations per hour per IP
+    await rate_limit(http_request, max_requests=3, window_seconds=3600, key_prefix="register")
+    
     try:
         user = await register_user(
             session, request.username, request.auth_hash, request.salt
@@ -68,12 +74,17 @@ async def register(
 
 @router.post("/login", response_model=AuthResponse)
 async def login(
-    request: AuthLoginRequest, session: AsyncSession = Depends(get_session)
+    request: AuthLoginRequest,
+    http_request: Request,
+    session: AsyncSession = Depends(get_session),
 ) -> AuthResponse:
     """Authenticate an existing user.
 
     Verifies the provided auth_hash against the stored hash and returns a JWT token.
     """
+    # Rate limit: 5 login attempts per 15 minutes per IP
+    await rate_limit(http_request, max_requests=5, window_seconds=900, key_prefix="login")
+    
     try:
         user = await authenticate_user(session, request.username, request.auth_hash)
     except UserNotFoundError:
@@ -109,6 +120,7 @@ async def login(
 @router.post("/change-password", status_code=status.HTTP_200_OK)
 async def change_password(
     request: AuthChangePasswordRequest,
+    http_request: Request,
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str]:
@@ -117,6 +129,9 @@ async def change_password(
     Updates both the user's authentication credentials (auth_hash, salt) and
     the user's vault data (ciphertext, iv, salt, version) in a single transaction.
     """
+    # Rate limit: 5 password change attempts per hour per IP
+    await rate_limit(http_request, max_requests=5, window_seconds=3600, key_prefix="change_password")
+    
     try:
         await change_user_password_with_vault(
             session,
@@ -169,6 +184,7 @@ async def delete_account(
 
 @router.get("/salts")
 async def get_salts(
+    http_request: Request,
     username: str = Query(..., description="Username to get salts for"),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, list[str]]:
@@ -181,6 +197,9 @@ async def get_salts(
     Note: This endpoint helps with cross-origin login but does not
     verify authentication, so it should be rate-limited in production.
     """
+    # Rate limit: 10 requests per hour per IP to prevent user enumeration
+    await rate_limit(http_request, max_requests=10, window_seconds=3600, key_prefix="get_salts")
+    
     salts = await get_salts_by_username(session, username)
     return {"salts": salts}
 
