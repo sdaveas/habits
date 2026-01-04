@@ -21,6 +21,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 8080,
     strictPort: true,
+    allowedHosts: ['ideal-upliftment-production.up.railway.app'],
   },
   test: {
     globals: true,
