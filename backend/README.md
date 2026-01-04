@@ -5,7 +5,7 @@ Backend API for the zero-knowledge habit tracking application. The server acts a
 ## Architecture
 
 - **Framework**: FastAPI with async/await
-- **Database**: PostgreSQL with SQLModel (async SQLAlchemy)
+- **Database**: SQLite (default) or PostgreSQL with SQLModel (async SQLAlchemy)
 - **Authentication**: JWT tokens with Argon2id password hashing
 - **Migrations**: Alembic
 - **Virtual Environment**: pipenv
@@ -15,7 +15,7 @@ Backend API for the zero-knowledge habit tracking application. The server acts a
 ### Prerequisites
 
 - Python 3.11+
-- PostgreSQL 14+
+- SQLite (included with Python) or PostgreSQL 14+ (for production)
 - pipenv
 
 ### Installation
@@ -31,25 +31,22 @@ Backend API for the zero-knowledge habit tracking application. The server acts a
    pipenv install
    ```
 
-3. **Create `.env` file**:
-   ```bash
-   cp .env.example .env
-   ```
+3. **Configure environment variables** (optional):
+   - The backend uses SQLite by default (`habbits_dev.db` will be created automatically)
+   - For PostgreSQL, create a `.env` file with:
+     - `DATABASE_URL`: PostgreSQL connection string (e.g., `postgresql+asyncpg://user:password@localhost:5432/habbits_db`)
+   - Other optional variables:
+     - `SECRET_KEY`: Secret key for JWT token signing (default: test key - change in production)
+     - `ALGORITHM`: JWT algorithm (default: `HS256`)
+     - `ACCESS_TOKEN_EXPIRE_MINUTES`: Token expiration time (default: `30`)
+     - Argon2id parameters (optional, defaults are fine)
 
-4. **Configure environment variables** in `.env`:
-   - `DATABASE_URL`: PostgreSQL connection string (e.g., `postgresql+asyncpg://user:password@localhost:5432/habbits_db`)
-   - `SECRET_KEY`: Secret key for JWT token signing
-   - `ALGORITHM`: JWT algorithm (default: `HS256`)
-   - `ACCESS_TOKEN_EXPIRE_MINUTES`: Token expiration time (default: `30`)
-   - Argon2id parameters (optional, defaults are fine)
-
-5. **Create database**:
+4. **Run migrations** (if using PostgreSQL, create database first):
    ```bash
+   # For PostgreSQL:
    createdb habbits_db
-   ```
-
-6. **Run migrations**:
-   ```bash
+   
+   # Run migrations (works for both SQLite and PostgreSQL):
    pipenv run alembic upgrade head
    ```
 

@@ -5,9 +5,12 @@ Zero-knowledge habit tracking application with GitHub-style heat map calendar vi
 ## Features
 
 - **Zero-Knowledge Architecture**: All encryption happens client-side. Server never sees plaintext data or encryption keys.
-- **Habit Management**: Create, edit, and delete habits with descriptions and colors.
-- **Daily Tracking**: Mark habits as complete for any day with undo functionality.
+- **Habit Management**: Create, edit, delete, and reorder habits with descriptions and colors.
+- **Daily Tracking**: Mark habits as complete with optional comments. Only today and yesterday are editable (historical data is read-only).
+- **Completion Comments**: Add optional comments to each habit completion for additional context.
 - **Heat Map Calendar**: GitHub-style calendar visualization showing activity over the past year.
+- **CSV Import/Export**: Export all habit data to CSV and import from CSV files.
+- **Theme Toggle**: Switch between light and dark themes.
 - **Automatic Sync**: Encrypted data automatically syncs to server after local changes.
 - **Offline Support**: Works fully offline with IndexedDB caching.
 

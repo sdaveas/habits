@@ -4,8 +4,8 @@ A full-stack habit tracking application with zero-knowledge architecture. All da
 
 ## Architecture
 
-- **Backend**: FastAPI (Python) with SQLite database
-- **Frontend**: React + TypeScript with Vite
+- **Backend**: FastAPI (Python 3.11+) with SQLite database (default) or PostgreSQL
+- **Frontend**: React 18+ with TypeScript, Vite, Zustand, Tailwind CSS
 - **Security**: Client-side encryption using Web Crypto API (PBKDF2, AES-256-GCM)
 
 ## Prerequisites
@@ -80,7 +80,10 @@ npm run dev
 ```
 
 The frontend will be available at:
-- Application: `http://localhost:5173`
+- Application: `https://localhost:5173` (HTTPS enabled for Web Crypto API support)
+- Network access: `https://YOUR_IP:5173`
+
+**Note**: HTTPS is required for the Web Crypto API to work when accessing via IP address. Vite will auto-generate a self-signed certificate. Your browser will show a security warning - click "Advanced" and "Proceed to localhost" (or your IP) to continue.
 
 The frontend is configured to proxy API requests to the backend automatically.
 
@@ -120,10 +123,13 @@ habits/
 ## Features
 
 - **Zero-Knowledge Architecture**: All encryption happens client-side
-- **Habit Management**: Create, edit, and delete habits
-- **Daily Tracking**: Mark habits as complete for any day
-- **Heat Map Calendar**: GitHub-style calendar visualization
-- **Automatic Sync**: Encrypted data syncs to server automatically
+- **Habit Management**: Create, edit, delete, and reorder habits with descriptions and colors
+- **Daily Tracking**: Mark habits as complete with optional comments (only today/yesterday editable)
+- **Heat Map Calendar**: GitHub-style calendar visualization showing activity over the past year
+- **Completion Comments**: Add optional comments to each habit completion
+- **CSV Import/Export**: Export and import habit data in CSV format
+- **Theme Toggle**: Switch between light and dark themes
+- **Automatic Sync**: Encrypted data syncs to server automatically after local changes
 - **Offline Support**: Works fully offline with IndexedDB caching
 
 ## API Endpoints
@@ -140,22 +146,22 @@ habits/
 
 ### Backend
 
-The backend uses environment variables with sensible defaults. You can create a `.env` file in the `backend/` directory to override:
+The backend uses SQLite by default (`habbits_dev.db` will be created automatically). You can create a `.env` file in the `backend/` directory to override:
 
-- `DATABASE_URL`: Database connection string (default: SQLite)
+- `DATABASE_URL`: Database connection string (default: SQLite, use PostgreSQL connection string for production)
 - `SECRET_KEY`: JWT secret key (default: test key - change in production)
 - `ALGORITHM`: JWT algorithm (default: `HS256`)
 - `ACCESS_TOKEN_EXPIRE_MINUTES`: Token expiration (default: `30`)
 
 ### Frontend
 
-The frontend is configured to proxy `/api` requests to `http://localhost:8000` (configured in `vite.config.ts`).
+The frontend is configured to proxy `/api` requests to `http://localhost:8000` (configured in `vite.config.ts`). The development server runs on HTTPS (`https://localhost:5173`) to support the Web Crypto API.
 
 ## Security
 
 - **Client-Side Encryption**: All data encrypted before transmission
 - **Zero-Knowledge**: Server never sees plaintext data or encryption keys
-- **Secure Key Derivation**: Uses PBKDF2 with 100,000 iterations
+- **Secure Key Derivation**: Uses PBKDF2 with 600,000 iterations
 - **Strong Encryption**: AES-256-GCM for data encryption
 - **No Key Storage**: Encryption keys exist only in memory during session
 

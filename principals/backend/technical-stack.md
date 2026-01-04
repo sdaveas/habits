@@ -16,15 +16,15 @@ See also: [Frontend Technical Stack](../frontend/technical-stack.md) | [Overview
 
 ## Database
 
-- **Database**: PostgreSQL 14+
-- **ORM**: SQLAlchemy/SQLModel
+- **Database**: SQLite (default for development) or PostgreSQL 14+ (production)
+- **ORM**: SQLModel (async SQLAlchemy)
 - **Migrations**: Alembic
-- **Connection Pooling**: SQLAlchemy connection pool
+- **Connection Pooling**: SQLAlchemy connection pool (async)
 
 ## Authentication & Security
 
 - **Password Hashing**: Argon2id (via passlib)
-- **Token Management**: JWT or session-based (to be determined)
+- **Token Management**: JWT tokens
 - **Input Validation**: Pydantic models
 
 ## Testing
@@ -43,8 +43,8 @@ See also: [Frontend Technical Stack](../frontend/technical-stack.md) | [Overview
 
 ## Package Management
 
-- **Tool**: Poetry (preferred) or pip + requirements.txt
-- **Virtual Environment**: venv or Poetry virtualenv
+- **Tool**: pipenv
+- **Virtual Environment**: pipenv virtualenv
 
 ## Development Tools
 

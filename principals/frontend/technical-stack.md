@@ -14,8 +14,8 @@ See also: [Backend Technical Stack](../backend/technical-stack.md) | [Overview](
 
 ## Framework
 
-- **Framework**: (To be determined - React, Vue, Svelte, etc.)
-- **State Management**: (To be determined - Zustand, Redux, Pinia, etc.)
+- **Framework**: React 18+ with TypeScript
+- **State Management**: Zustand
 
 ## Cryptography
 
@@ -26,23 +26,29 @@ See also: [Backend Technical Stack](../backend/technical-stack.md) | [Overview](
 
 ## Build Tools
 
-- **Build Tool**: (To be determined - Vite, Webpack, Rollup, etc.)
-- **Bundler**: (Determined by build tool choice)
+- **Build Tool**: Vite
+- **Bundler**: Vite (Rollup-based)
 - **Module System**: ES Modules
 
 ## Testing
 
-- **Framework**: Vitest (preferred) or Jest
-- **Test Runner**: Vitest or Jest
+- **Framework**: Vitest
+- **Test Runner**: Vitest
+- **Testing Library**: React Testing Library
 - **E2E Testing**: (To be determined - Playwright, Cypress, etc.)
-- **Coverage**: Built into Vitest/Jest
+- **Coverage**: Built into Vitest
 
 ## Code Quality
 
 - **Linter**: ESLint
-- **Formatter**: Prettier
+- **Formatter**: Prettier (via ESLint)
 - **Type Checking**: TypeScript (strict mode)
 - **Import Sorting**: ESLint plugin or Prettier
+
+## Styling
+
+- **CSS Framework**: Tailwind CSS
+- **Theme Support**: Dark/light mode via theme store
 
 ## Package Management
 

@@ -21,7 +21,8 @@ A zero-knowledge habit tracking application that allows users to track multiple 
 
 - **Mark as Done**: Users can click "Done Today" to mark a habit as completed for the current day
 - **Visual Feedback**: Completed days are highlighted on the calendar heat map
-- **Multiple Completions**: Users can mark a habit as done multiple times per day (optional feature)
+- **Completion Comments**: Users can add optional comments to each completion
+- **Edit Restrictions**: Users can only edit completions for today and yesterday (historical data is read-only)
 - **Undo**: Users can undo a completion if marked by mistake
 
 ### 3. Visual Calendar (GitHub Heat Map Style)
@@ -40,6 +41,19 @@ A zero-knowledge habit tracking application that allows users to track multiple 
 - **Automatic Sync**: Changes are automatically encrypted and synced after local modifications
 - **Conflict Resolution**: Handle sync conflicts (last-write-wins or manual merge)
 - **Offline Support**: Application works offline, syncs when connection is available
+
+### 5. Data Import/Export
+
+- **CSV Export**: Users can export all habit data to CSV format
+- **CSV Import**: Users can import habit data from CSV files
+- **Format Support**: CSV includes habit metadata, completion dates, and comments
+- **Data Migration**: Supports importing data from previous exports
+
+### 6. User Interface
+
+- **Theme Toggle**: Users can switch between light and dark themes
+- **Habit Reordering**: Users can reorder habits via drag-and-drop or manual ordering
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
 
 ## User Authentication & Key Derivation
 
@@ -67,18 +81,23 @@ A zero-knowledge habit tracking application that allows users to track multiple 
 ### Habit Data Structure
 
 ```typescript
+interface HabitCompletion {
+  date: string;           // ISO 8601 date (YYYY-MM-DD)
+  comment?: string;        // Optional comment for this completion
+}
+
 interface Habit {
   id: string;              // UUID v4
   name: string;
   description?: string;
   color?: string;         // Hex color code
-  createdAt: string;       // ISO 8601 timestamp
-  completedDates: string[]; // Array of ISO 8601 dates (YYYY-MM-DD)
+  createdAt: string;      // ISO 8601 timestamp
+  completedDates: HabitCompletion[]; // Array of completion records with optional comments
 }
 
 interface HabitData {
   habits: Habit[];
-  lastModified: string;   // ISO 8601 timestamp
+  lastModified: string;    // ISO 8601 timestamp
   version: number;         // Schema version for future migrations
 }
 ```
@@ -131,12 +150,13 @@ The entire `HabitData` object is encrypted and stored as:
 
 ### 4. Marking Habit as Done
 
-1. User clicks "Done Today" button for a habit
-2. Frontend adds current date to habit's `completedDates` array
-3. Frontend updates local `HabitData` structure
-4. Frontend encrypts updated `HabitData`
-5. Frontend automatically syncs encrypted blob to server
-6. Calendar heat map updates to show completion
+1. User clicks "Done Today" button for a habit (or clicks calendar cell for today/yesterday)
+2. User optionally adds a comment for the completion
+3. Frontend adds current date (with optional comment) to habit's `completedDates` array
+4. Frontend updates local `HabitData` structure
+5. Frontend encrypts updated `HabitData`
+6. Frontend automatically syncs encrypted blob to server
+7. Calendar heat map updates to show completion
 
 ### 5. Viewing Calendar
 
@@ -204,12 +224,15 @@ The entire `HabitData` object is encrypted and stored as:
 
 - **Hover States**: Show date and completion details on calendar cells
 - **Click Actions**: 
-  - Calendar cell: Toggle completion for that date
+  - Calendar cell: Toggle completion for today/yesterday (historical dates are read-only)
   - Habit item: Show/edit habit details
+  - Completion cell: Add/edit comment for that completion
 - **Keyboard Shortcuts**: 
   - Quick add habit
   - Mark today as done
   - Navigate calendar
+- **Theme Toggle**: Switch between light and dark themes
+- **Habit Reordering**: Drag-and-drop or manual reordering of habits
 
 ### Responsive Design
 
@@ -221,17 +244,22 @@ The entire `HabitData` object is encrypted and stored as:
 
 ### Frontend
 
-- **Framework**: (To be determined - React, Vue, Svelte, etc.)
-- **State Management**: Local state with encrypted sync
-- **Crypto**: Web Crypto API
+- **Framework**: React 18+ with TypeScript
+- **State Management**: Zustand for local state with encrypted sync
+- **Styling**: Tailwind CSS
+- **Crypto**: Web Crypto API (PBKDF2, AES-256-GCM)
 - **Storage**: IndexedDB for offline encrypted blob cache
-- **Build**: Modern build tool (Vite, Webpack, etc.)
+- **Build**: Vite
+- **Testing**: Vitest + React Testing Library
 
 ### Backend
 
+- **Framework**: FastAPI (Python 3.11+)
 - **API**: REST API (see [API Specification](./api-spec.md))
-- **Storage**: PostgreSQL for encrypted blobs
-- **Authentication**: Token-based (JWT or sessions)
+- **Storage**: SQLite (default) or PostgreSQL for encrypted blobs
+- **Database ORM**: SQLModel (async SQLAlchemy)
+- **Authentication**: JWT tokens with Argon2id password hashing
+- **Migrations**: Alembic
 - **Sync**: Last-write-wins or version-based conflict resolution
 
 ### Performance
@@ -245,13 +273,20 @@ The entire `HabitData` object is encrypted and stored as:
 
 - Habit streaks and statistics
 - Habit categories/tags
-- Export/import functionality
 - Sharing habits (encrypted sharing)
 - Mobile apps (iOS/Android)
 - Habit reminders/notifications
 - Custom date ranges and views
 - Habit templates
 - Social features (encrypted sharing)
+
+## Implemented Features (Beyond MVP)
+
+- ✅ CSV Import/Export functionality
+- ✅ Completion comments
+- ✅ Theme toggle (light/dark mode)
+- ✅ Habit reordering
+- ✅ Calendar click restrictions (only today/yesterday editable)
 
 ## Success Metrics
 

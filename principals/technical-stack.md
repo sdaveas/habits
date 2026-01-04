@@ -2,7 +2,7 @@
 
 This document provides an overview of the technology stack. For detailed information, see the platform-specific documentation:
 
-- **[Backend Technical Stack](./backend/technical-stack.md)** - Python, FastAPI, PostgreSQL
+- **[Backend Technical Stack](./backend/technical-stack.md)** - Python, FastAPI, SQLite/PostgreSQL
 - **[Frontend Technical Stack](./frontend/technical-stack.md)** - TypeScript, Web Crypto API
 
 For product requirements and features, see the [Product Specification](./product-spec.md).
@@ -11,13 +11,17 @@ For product requirements and features, see the [Product Specification](./product
 
 ### Backend
 - Python 3.11+ with FastAPI
-- PostgreSQL database
-- SQLAlchemy/SQLModel ORM
+- SQLite (default) or PostgreSQL database
+- SQLModel ORM (async SQLAlchemy)
+- Alembic for migrations
+- pipenv for dependency management
 
 ### Frontend
-- TypeScript (ES2022+)
+- TypeScript (ES2022+) with React 18+
 - Modern browsers with Web Crypto API support
-- Framework: (To be determined)
+- Vite build tool
+- Zustand for state management
+- Tailwind CSS for styling
 
 ## Communication
 

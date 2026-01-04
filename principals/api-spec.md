@@ -5,7 +5,7 @@
 - **Protocol**: REST API over HTTPS
 - **TLS Version**: TLS 1.3 (minimum)
 - **Content-Type**: `application/json`
-- **Authentication**: Bearer token (JWT) or session-based (to be determined)
+- **Authentication**: Bearer token (JWT)
 
 ## Data Exchange Format (The "Blob")
 
