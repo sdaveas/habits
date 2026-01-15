@@ -34,6 +34,8 @@ export function HeatMapCalendar(): React.JSX.Element {
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [comment, setComment] = useState('');
+  const [showMonths, setShowMonths] = useState(true);
+  const [showDays, setShowDays] = useState(false);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const calendarScrollRef = useRef<HTMLDivElement | null>(null);
   const habitNameRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -128,19 +130,29 @@ export function HeatMapCalendar(): React.JSX.Element {
 
   // Group dates by week for display (Monday to Sunday)
   const weeks = useMemo(() => {
-    const weekGroups: Date[][] = [];
-    let currentWeek: Date[] = [];
+    if (dates.length === 0) return [];
+    
+    const weekGroups: (Date | null)[][] = [];
+    let currentWeek: (Date | null)[] = [];
 
-    dates.forEach((date, index) => {
+    // Get the day of week for the first date (Monday = 1, Sunday = 7)
+    const firstDate = dates[0];
+    const firstDayOfWeek = firstDate.getDay();
+    const mondayBasedFirstDay = firstDayOfWeek === 0 ? 7 : firstDayOfWeek;
+    
+    // Pad the first week with nulls to align properly
+    for (let i = 1; i < mondayBasedFirstDay; i++) {
+      currentWeek.push(null);
+    }
+
+    dates.forEach((date) => {
       const dayOfWeek = date.getDay();
       // Convert Sunday (0) to 7, so Monday is 1 and Sunday is 7
       const mondayBasedDay = dayOfWeek === 0 ? 7 : dayOfWeek;
       
-      // Start new week on Monday (1) or first day
-      if (mondayBasedDay === 1 || index === 0) {
-        if (currentWeek.length > 0) {
-          weekGroups.push(currentWeek);
-        }
+      // Start new week on Monday (1)
+      if (mondayBasedDay === 1 && currentWeek.length > 0) {
+        weekGroups.push(currentWeek);
         currentWeek = [];
       }
 
@@ -153,6 +165,40 @@ export function HeatMapCalendar(): React.JSX.Element {
 
     return weekGroups;
   }, [dates]);
+
+  // Calculate month labels - one per week column
+  const monthLabels = useMemo(() => {
+    const labels: string[] = [];
+    let lastSeenMonth = '';
+    
+    weeks.forEach((week) => {
+      let monthText = '';
+      
+      // Check if this week contains the 1st of a new month
+      for (const date of week) {
+        if (date === null) continue;
+        
+        const dateMonth = format(date, 'MMM yyyy');
+        const dayOfMonth = date.getDate();
+        
+        // Show month label if this week contains the 1st day of a new month
+        if (dateMonth !== lastSeenMonth && dayOfMonth === 1) {
+          monthText = format(date, 'MMM');
+          lastSeenMonth = dateMonth;
+          break;
+        }
+        
+        // Track month changes even if not the 1st
+        if (dateMonth !== lastSeenMonth) {
+          lastSeenMonth = dateMonth;
+        }
+      }
+      
+      labels.push(monthText);
+    });
+    
+    return labels;
+  }, [weeks]);
 
   // Auto-scroll to current day on mount
   useEffect(() => {
@@ -246,6 +292,31 @@ export function HeatMapCalendar(): React.JSX.Element {
 
   return (
     <div className="w-full">
+      {/* Toggle buttons */}
+      <div className="flex justify-end mb-3">
+        <div className="inline-flex border border-black dark:border-white rounded overflow-hidden">
+          <button
+            onClick={() => setShowMonths(!showMonths)}
+            className={`px-2 py-1 text-[10px] font-medium border-r border-black dark:border-white ${
+              showMonths 
+                ? 'bg-black dark:bg-white text-white dark:text-black' 
+                : 'bg-white dark:bg-black text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+          >
+            Months
+          </button>
+          <button
+            onClick={() => setShowDays(!showDays)}
+            className={`px-2 py-1 text-[10px] font-medium ${
+              showDays 
+                ? 'bg-black dark:bg-white text-white dark:text-black' 
+                : 'bg-white dark:bg-black text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+          >
+            Days
+          </button>
+        </div>
+      </div>
       <div 
         ref={calendarScrollRef}
         className="bg-white dark:bg-black border border-black dark:border-white rounded p-3 sm:p-6 overflow-x-auto -mx-2 sm:mx-0"
@@ -319,22 +390,61 @@ export function HeatMapCalendar(): React.JSX.Element {
                       />
                   </div>
                   {/* Heatmap row */}
-                  <div className="flex gap-1 sm:gap-1.5 justify-center items-start">
-                    {/* Left day labels */}
-                    <div className="flex flex-col gap-1 sm:gap-1.5 pr-1 sm:pr-2">
-                      {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => (
-                        <div
-                          key={`left-${idx}`}
-                          className="w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center text-[8px] sm:text-[10px] font-bold text-black dark:text-white"
-                          style={{ minWidth: '12px', minHeight: '12px' }}
-                        >
-                          {day}
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    {/* Month labels row - one label per week column */}
+                    {showMonths && (
+                      <div className="flex gap-1 sm:gap-1.5 justify-center mb-1">
+                        <div className="w-3 sm:w-4" style={{ minWidth: '12px' }} />
+                        {monthLabels.map((month, idx) => (
+                          <div
+                            key={`month-${idx}`}
+                            className="w-3 sm:w-4 text-[9px] sm:text-[11px] font-bold text-black dark:text-white h-4 flex items-end overflow-visible"
+                            style={{
+                              minWidth: '12px',
+                              flexShrink: 0,
+                            }}
+                          >
+                            <span className="whitespace-nowrap">{month}</span>
+                          </div>
+                        ))}
+                        <div className="w-3 sm:w-4" style={{ minWidth: '12px' }} />
+                      </div>
+                    )}
+                    
+                    {/* Calendar grid */}
+                    <div className="flex gap-1 sm:gap-1.5 justify-center items-start">
+                      {/* Left day labels */}
+                      {showDays && (
+                        <div className="flex flex-col gap-1 sm:gap-1.5 pr-1 sm:pr-2">
+                          {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => (
+                            <div
+                              key={`left-${idx}`}
+                              className="w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center text-[8px] sm:text-[10px] font-bold text-black dark:text-white"
+                              style={{ minWidth: '12px', minHeight: '12px' }}
+                            >
+                              {day}
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      )}
                     {weeks.map((week, weekIndex) => (
                       <div key={weekIndex} className="flex flex-col gap-1 sm:gap-1.5">
-                        {week.map((date) => {
+                        {week.map((date, dayIndex) => {
+                          // Handle null cells (padding)
+                          if (date === null) {
+                            return (
+                              <div
+                                key={`empty-${weekIndex}-${dayIndex}`}
+                                className="w-3 h-3 sm:w-4 sm:h-4"
+                                style={{
+                                  minWidth: '12px',
+                                  minHeight: '12px',
+                                  visibility: 'hidden',
+                                }}
+                              />
+                            );
+                          }
+                          
                           const isCompleted = isHabitCompletedOnDate(habit, date);
 
                           return (
@@ -371,17 +481,20 @@ export function HeatMapCalendar(): React.JSX.Element {
                         })}
                       </div>
                     ))}
-                    {/* Right day labels */}
-                    <div className="flex flex-col gap-1 sm:gap-1.5 pl-1 sm:pl-2">
-                      {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => (
-                        <div
-                          key={`right-${idx}`}
-                          className="w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center text-[8px] sm:text-[10px] font-bold text-black dark:text-white"
-                          style={{ minWidth: '12px', minHeight: '12px' }}
-                        >
-                          {day}
+                      {/* Right day labels */}
+                      {showDays && (
+                        <div className="flex flex-col gap-1 sm:gap-1.5 pl-1 sm:pl-2">
+                          {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => (
+                            <div
+                              key={`right-${idx}`}
+                              className="w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center text-[8px] sm:text-[10px] font-bold text-black dark:text-white"
+                              style={{ minWidth: '12px', minHeight: '12px' }}
+                            >
+                              {day}
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
                 </div>
