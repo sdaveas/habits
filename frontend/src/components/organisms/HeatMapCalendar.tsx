@@ -142,16 +142,18 @@ export function HeatMapCalendar(): React.JSX.Element {
     }
   };
 
-  // Group dates by week for display
+  // Group dates by week for display (Monday to Sunday)
   const weeks = useMemo(() => {
     const weekGroups: Date[][] = [];
     let currentWeek: Date[] = [];
 
     dates.forEach((date, index) => {
       const dayOfWeek = date.getDay();
+      // Convert Sunday (0) to 7, so Monday is 1 and Sunday is 7
+      const mondayBasedDay = dayOfWeek === 0 ? 7 : dayOfWeek;
       
-      // Start new week on Sunday or first day
-      if (dayOfWeek === 0 || index === 0) {
+      // Start new week on Monday (1) or first day
+      if (mondayBasedDay === 1 || index === 0) {
         if (currentWeek.length > 0) {
           weekGroups.push(currentWeek);
         }
@@ -333,7 +335,19 @@ export function HeatMapCalendar(): React.JSX.Element {
                       />
                   </div>
                   {/* Heatmap row */}
-                  <div className="flex gap-1 sm:gap-1.5 justify-center">
+                  <div className="flex gap-1 sm:gap-1.5 justify-center items-start">
+                    {/* Left day labels */}
+                    <div className="flex flex-col gap-1 sm:gap-1.5 pr-1 sm:pr-2">
+                      {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => (
+                        <div
+                          key={`left-${idx}`}
+                          className="w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center text-[8px] sm:text-[10px] font-bold text-black dark:text-white"
+                          style={{ minWidth: '12px', minHeight: '12px' }}
+                        >
+                          {day}
+                        </div>
+                      ))}
+                    </div>
                     {weeks.map((week, weekIndex) => (
                       <div key={weekIndex} className="flex flex-col gap-1 sm:gap-1.5">
                         {week.map((date) => {
@@ -409,6 +423,18 @@ export function HeatMapCalendar(): React.JSX.Element {
                         })}
                       </div>
                     ))}
+                    {/* Right day labels */}
+                    <div className="flex flex-col gap-1 sm:gap-1.5 pl-1 sm:pl-2">
+                      {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => (
+                        <div
+                          key={`right-${idx}`}
+                          className="w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center text-[8px] sm:text-[10px] font-bold text-black dark:text-white"
+                          style={{ minWidth: '12px', minHeight: '12px' }}
+                        >
+                          {day}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               );
