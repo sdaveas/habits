@@ -11,6 +11,7 @@ import { HabitManagementModal } from '../molecules/HabitManagementModal';
 import { ChangePasswordModal } from '../molecules/ChangePasswordModal';
 import { DeleteAccountModal } from '../molecules/DeleteAccountModal';
 import { ImportExportModal } from '../molecules/ImportExportModal';
+import { AboutModal } from '../molecules/AboutModal';
 
 export function Header(): React.JSX.Element {
   const [showMenu, setShowMenu] = useState(false);
@@ -19,6 +20,7 @@ export function Header(): React.JSX.Element {
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [showImportExport, setShowImportExport] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const menuDropdownRef = useRef<HTMLDivElement>(null);
   const username = useAuthStore((state) => state.username);
@@ -151,6 +153,16 @@ export function Header(): React.JSX.Element {
                       <button
                         onClick={() => {
                           setShowMenu(false);
+                          setShowAbout(true);
+                        }}
+                        className="w-full text-left px-3 py-2 text-base font-bold text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                      >
+                        About
+                      </button>
+                      <div className="border-t border-gray-300 dark:border-gray-700 my-1"></div>
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
                           setShowDeleteAccount(true);
                         }}
                         className="w-full text-left px-3 py-2 text-base font-bold text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
@@ -192,6 +204,11 @@ export function Header(): React.JSX.Element {
               {showDeleteAccount && (
                 <DeleteAccountModal 
                   onClose={() => setShowDeleteAccount(false)}
+                />
+              )}
+              {showAbout && (
+                <AboutModal 
+                  onClose={() => setShowAbout(false)}
                 />
               )}
             </div>
