@@ -13,9 +13,19 @@ class User(SQLModel, table=True):
     """User model for authentication."""
 
     id: int | None = Field(default=None, primary_key=True)
-    username: str = Field(index=True)
-    auth_hash: str = Field(description="Argon2id hash of H_auth")
-    salt: str = Field(description="User-unique salt (base64)")
+
+    # Authentication type
+    auth_type: str = Field(default="password", index=True, description="Authentication type: 'password' or 'wallet'")
+
+    # Password auth fields (nullable for wallet users)
+    username: str | None = Field(default=None, index=True)
+    auth_hash: str | None = Field(default=None, description="Argon2id hash of H_auth")
+    salt: str | None = Field(default=None, description="User-unique salt (base64)")
+
+    # Wallet auth fields (nullable for password users)
+    wallet_address: str | None = Field(default=None, unique=True, index=True, description="Lowercase Ethereum address")
+    message_version: int | None = Field(default=None, description="Auth message version for wallet users")
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 

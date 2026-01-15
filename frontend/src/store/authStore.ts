@@ -13,7 +13,8 @@ interface AuthState {
   username: string | null;
   vaultId: string | null;
   token: string | null;
-  login: (username: string, token: string, vaultId?: string) => void;
+  authType: 'password' | 'wallet' | null;
+  login: (username: string, token: string, vaultId?: string, authType?: 'password' | 'wallet') => void;
   logout: () => void;
   restoreSession: () => void;
 }
@@ -23,19 +24,22 @@ function loadAuthState(): {
   token: string | null;
   username: string | null;
   vaultId: string | null;
+  authType: 'password' | 'wallet' | null;
 } {
   try {
     const token = localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE.AUTH_TOKEN);
     const username = localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE.USERNAME);
     const vaultId = localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE.VAULT_ID);
-    
+    const authType = localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE.AUTH_TYPE) as 'password' | 'wallet' | null;
+
     return {
       token: token || null,
       username: username || null,
       vaultId: vaultId || null,
+      authType: authType || null,
     };
   } catch {
-    return { token: null, username: null, vaultId: null };
+    return { token: null, username: null, vaultId: null, authType: null };
   }
 }
 
@@ -43,7 +47,8 @@ function loadAuthState(): {
 function saveAuthState(
   token: string | null,
   username: string | null,
-  vaultId: string | null
+  vaultId: string | null,
+  authType: 'password' | 'wallet' | null
 ): void {
   try {
     if (token && username) {
@@ -54,10 +59,16 @@ function saveAuthState(
       } else {
         localStorage.removeItem(STORAGE_KEYS.LOCAL_STORAGE.VAULT_ID);
       }
+      if (authType) {
+        localStorage.setItem(STORAGE_KEYS.LOCAL_STORAGE.AUTH_TYPE, authType);
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.LOCAL_STORAGE.AUTH_TYPE);
+      }
     } else {
       localStorage.removeItem(STORAGE_KEYS.LOCAL_STORAGE.AUTH_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.LOCAL_STORAGE.USERNAME);
       localStorage.removeItem(STORAGE_KEYS.LOCAL_STORAGE.VAULT_ID);
+      localStorage.removeItem(STORAGE_KEYS.LOCAL_STORAGE.AUTH_TYPE);
     }
   } catch {
     // Ignore localStorage errors (e.g., in private browsing mode)
@@ -71,24 +82,27 @@ export const useAuthStore = create<AuthState>((set) => ({
   username: persistedState.username,
   vaultId: persistedState.vaultId,
   token: persistedState.token,
-  login: (username: string, token: string, vaultId?: string) => {
+  authType: persistedState.authType,
+  login: (username: string, token: string, vaultId?: string, authType: 'password' | 'wallet' = 'password') => {
     setAuthToken(token);
-    saveAuthState(token, username, vaultId || null);
+    saveAuthState(token, username, vaultId || null, authType);
     set({
       isAuthenticated: true,
       username,
       token,
       vaultId: vaultId || null,
+      authType,
     });
   },
   logout: () => {
     setAuthToken(null);
-    saveAuthState(null, null, null);
+    saveAuthState(null, null, null, null);
     set({
       isAuthenticated: false,
       username: null,
       vaultId: null,
       token: null,
+      authType: null,
     });
   },
   restoreSession: () => {
@@ -100,6 +114,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         username: state.username,
         token: state.token,
         vaultId: state.vaultId,
+        authType: state.authType,
       });
     }
   },

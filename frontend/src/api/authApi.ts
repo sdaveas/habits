@@ -12,6 +12,8 @@ import type {
   ChangePasswordResponse,
   DeleteAccountRequest,
   DeleteAccountResponse,
+  WalletRegisterRequest,
+  WalletLoginRequest,
 } from '../types/AuthTypes';
 
 /**
@@ -73,3 +75,26 @@ export async function getSalts(username: string): Promise<{ salts: string[] }> {
   );
 }
 
+/**
+ * Register a new user with wallet authentication
+ */
+export async function walletRegister(
+  request: WalletRegisterRequest
+): Promise<AuthResponse> {
+  return fetchAPI<AuthResponse>(API_ENDPOINTS.AUTH.WALLET_REGISTER, {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+
+/**
+ * Login with wallet authentication
+ */
+export async function walletLogin(
+  request: WalletLoginRequest
+): Promise<AuthResponse> {
+  return fetchAPI<AuthResponse>(API_ENDPOINTS.AUTH.WALLET_LOGIN, {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}

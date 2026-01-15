@@ -14,6 +14,7 @@ export const STORAGE_KEYS = {
     AUTH_TOKEN: 'habits-auth-token',
     USERNAME: 'habits-username',
     VAULT_ID: 'habits-vault-id',
+    AUTH_TYPE: 'habits-auth-type',
   },
 } as const;
 

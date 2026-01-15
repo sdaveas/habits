@@ -44,3 +44,16 @@ export interface DeleteAccountResponse {
   message: string;
 }
 
+export interface WalletRegisterRequest {
+  wallet_address: string; // Ethereum address (lowercase, with 0x prefix)
+  signature: string; // EIP-191 signature (hex with 0x prefix)
+  message: string; // The signed message
+  message_version: number; // Auth message version
+}
+
+export interface WalletLoginRequest {
+  wallet_address: string; // Ethereum address (lowercase, with 0x prefix)
+  signature: string; // EIP-191 signature (hex with 0x prefix)
+  message: string; // The signed message
+  message_version: number; // Auth message version
+}

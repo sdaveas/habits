@@ -14,3 +14,4 @@ echo ""
 
 pipenv run streamlit run admin.py --server.port 8501
 
+

@@ -16,6 +16,7 @@ python-jose = {extras = ["cryptography"], version = "*"}
 aiosqlite = "*"
 greenlet = "*"
 streamlit = "*"
+web3 = "==7.14.0"
 
 [dev-packages]
 pytest = "*"

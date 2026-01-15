@@ -18,6 +18,8 @@ from app.models.schemas import (
     AuthLoginRequest,
     AuthRegisterRequest,
     AuthResponse,
+    WalletLoginRequest,
+    WalletRegisterRequest,
 )
 from app.services.auth_service import (
     authenticate_user,
@@ -25,6 +27,12 @@ from app.services.auth_service import (
     delete_user,
     get_salts_by_username,
     register_user,
+)
+from app.services.wallet_auth_service import (
+    WalletAuthError,
+    WalletAlreadyExistsError,
+    authenticate_wallet_user,
+    register_wallet_user,
 )
 from app.services.vault_service import get_vault_by_user
 
@@ -114,6 +122,100 @@ async def login(
         token_type="bearer",
         vault_id=vault.vault_id if vault else None,
         salt=user.salt,
+    )
+
+
+@router.post("/wallet/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+async def wallet_register(
+    request: WalletRegisterRequest,
+    http_request: Request,
+    session: AsyncSession = Depends(get_session),
+) -> AuthResponse:
+    """Register a new user with wallet authentication.
+
+    Creates a new user account using wallet signature verification.
+    Returns a JWT access token for immediate authentication.
+    """
+    # Rate limit: 3 registrations per hour per IP
+    await rate_limit(http_request, max_requests=3, window_seconds=3600, key_prefix="wallet_register")
+
+    try:
+        user = await register_wallet_user(
+            session,
+            request.wallet_address,
+            request.signature,
+            request.message,
+            request.message_version,
+        )
+    except WalletAlreadyExistsError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e),
+        )
+    except WalletAuthError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+        )
+
+    # Check if user already has a vault
+    vault = await get_vault_by_user(session, user)
+
+    # Create access token
+    access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
+    access_token = create_access_token(
+        data={"sub": user.id}, expires_delta=access_token_expires
+    )
+
+    return AuthResponse(
+        access_token=access_token,
+        token_type="bearer",
+        vault_id=vault.vault_id if vault else None,
+        salt="",  # Empty for wallet users
+    )
+
+
+@router.post("/wallet/login", response_model=AuthResponse)
+async def wallet_login(
+    request: WalletLoginRequest,
+    http_request: Request,
+    session: AsyncSession = Depends(get_session),
+) -> AuthResponse:
+    """Authenticate a wallet user.
+
+    Verifies the wallet signature and returns a JWT token.
+    """
+    # Rate limit: 5 login attempts per 15 minutes per IP
+    await rate_limit(http_request, max_requests=5, window_seconds=900, key_prefix="wallet_login")
+
+    try:
+        user = await authenticate_wallet_user(
+            session,
+            request.wallet_address,
+            request.signature,
+            request.message,
+        )
+    except WalletAuthError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Get user's vault if it exists
+    vault = await get_vault_by_user(session, user)
+
+    # Create access token
+    access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
+    access_token = create_access_token(
+        data={"sub": user.id}, expires_delta=access_token_expires
+    )
+
+    return AuthResponse(
+        access_token=access_token,
+        token_type="bearer",
+        vault_id=vault.vault_id if vault else None,
+        salt="",  # Empty for wallet users
     )
 
 

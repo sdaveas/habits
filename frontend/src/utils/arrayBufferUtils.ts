@@ -38,11 +38,14 @@ export function arrayBufferToHex(buffer: ArrayBuffer): string {
 
 /**
  * Convert hex string to ArrayBuffer
+ * Handles hex strings with or without 0x prefix
  */
 export function hexToArrayBuffer(hex: string): ArrayBuffer {
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < hex.length; i += 2) {
-    bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+  // Remove 0x prefix if present
+  const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
+  const bytes = new Uint8Array(cleanHex.length / 2);
+  for (let i = 0; i < cleanHex.length; i += 2) {
+    bytes[i / 2] = parseInt(cleanHex.substr(i, 2), 16);
   }
   return bytes.buffer;
 }

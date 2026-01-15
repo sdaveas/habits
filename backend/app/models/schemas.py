@@ -38,6 +38,38 @@ class AuthDeleteAccountRequest(BaseModel):
     password_auth_hash: str = Field(..., description="PBKDF2-derived H_auth string from password (base64)")
 
 
+class WalletRegisterRequest(BaseModel):
+    """Request schema for wallet registration."""
+
+    wallet_address: str = Field(..., description="Ethereum address (lowercase)")
+    signature: str = Field(..., description="EIP-191 signature (hex with 0x prefix)")
+    message: str = Field(..., description="The signed message")
+    message_version: int = Field(..., ge=1, description="Auth message version")
+
+    @validator("wallet_address")
+    def validate_address_format(cls, v: str) -> str:
+        """Validate Ethereum address format."""
+        if not v.startswith("0x") or len(v) != 42:
+            raise ValueError("Invalid Ethereum address format")
+        return v.lower()
+
+
+class WalletLoginRequest(BaseModel):
+    """Request schema for wallet login."""
+
+    wallet_address: str = Field(..., description="Ethereum address (lowercase)")
+    signature: str = Field(..., description="EIP-191 signature (hex with 0x prefix)")
+    message: str = Field(..., description="The signed message")
+    message_version: int = Field(..., ge=1, description="Auth message version")
+
+    @validator("wallet_address")
+    def validate_address_format(cls, v: str) -> str:
+        """Validate Ethereum address format."""
+        if not v.startswith("0x") or len(v) != 42:
+            raise ValueError("Invalid Ethereum address format")
+        return v.lower()
+
+
 class AuthResponse(BaseModel):
     """Response schema for authentication."""
 

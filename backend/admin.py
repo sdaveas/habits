@@ -246,3 +246,4 @@ elif page == "Delete Records":
 st.divider()
 st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
+
