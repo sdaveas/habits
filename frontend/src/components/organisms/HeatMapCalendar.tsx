@@ -63,22 +63,6 @@ export function HeatMapCalendar(): React.JSX.Element {
   };
 
   const handleCellClick = (habit: Habit, date: Date): void => {
-    // Only allow toggling for today or yesterday
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    const dateToCheck = new Date(date);
-    dateToCheck.setHours(0, 0, 0, 0);
-    
-    const isToday = dateToCheck.getTime() === today.getTime();
-    const isYesterday = dateToCheck.getTime() === yesterday.getTime();
-    
-    if (!isToday && !isYesterday) {
-      return; // Don't allow editing history
-    }
-    
     const dateStr = format(date, 'yyyy-MM-dd');
     
     // Open comment modal for adding/editing
@@ -338,15 +322,6 @@ export function HeatMapCalendar(): React.JSX.Element {
                       <div key={weekIndex} className="flex flex-col gap-1 sm:gap-1.5">
                         {week.map((date) => {
                           const isCompleted = isHabitCompletedOnDate(habit, date);
-                          const today = new Date();
-                          today.setHours(0, 0, 0, 0);
-                          const yesterday = new Date(today);
-                          yesterday.setDate(yesterday.getDate() - 1);
-                          const dateToCheck = new Date(date);
-                          dateToCheck.setHours(0, 0, 0, 0);
-                          const isToday = dateToCheck.getTime() === today.getTime();
-                          const isYesterday = dateToCheck.getTime() === yesterday.getTime();
-                          const isClickable = isToday || isYesterday;
 
                           return (
                             <div
@@ -358,25 +333,11 @@ export function HeatMapCalendar(): React.JSX.Element {
                                   : (isCompleted ? 'white' : 'black'),
                                 minWidth: '12px',
                                 minHeight: '12px',
-                                cursor: isClickable ? 'pointer' : 'default',
+                                cursor: 'pointer',
                               }}
                               onClick={() => {
-                                // Only allow clicking on today or yesterday
-                                const today = new Date();
-                                today.setHours(0, 0, 0, 0);
-                                const yesterday = new Date(today);
-                                yesterday.setDate(yesterday.getDate() - 1);
-                                
-                                const dateToCheck = new Date(date);
-                                dateToCheck.setHours(0, 0, 0, 0);
-                                
-                                const isToday = dateToCheck.getTime() === today.getTime();
-                                const isYesterday = dateToCheck.getTime() === yesterday.getTime();
-                                
-                                if (isToday || isYesterday) {
-                                  handleCellClick(habit, date);
-                                  handleCellHover(date, habit);
-                                }
+                                handleCellClick(habit, date);
+                                handleCellHover(date, habit);
                               }}
                               onMouseEnter={() => handleCellHover(date, habit)}
                               onMouseLeave={() => handleCellHover(null, null)}
@@ -387,20 +348,7 @@ export function HeatMapCalendar(): React.JSX.Element {
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                   e.preventDefault();
-                                  const today = new Date();
-                                  today.setHours(0, 0, 0, 0);
-                                  const yesterday = new Date(today);
-                                  yesterday.setDate(yesterday.getDate() - 1);
-                                  
-                                  const dateToCheck = new Date(date);
-                                  dateToCheck.setHours(0, 0, 0, 0);
-                                  
-                                  const isToday = dateToCheck.getTime() === today.getTime();
-                                  const isYesterday = dateToCheck.getTime() === yesterday.getTime();
-                                  
-                                  if (isToday || isYesterday) {
-                                    handleCellClick(habit, date);
-                                  }
+                                  handleCellClick(habit, date);
                                 }
                               }}
                               aria-label={`${habit.name} - ${formatDate(date)}: ${isCompleted ? 'Completed' : 'Not completed'}`}
